@@ -13,6 +13,7 @@ ipykernel = "*"
 pythreejs = "*"
 scipy = "*"
 pandas = "*"
+state-preparation = {git = "https://github.com/josephniblo/state-preparation.git"}
 
 [dev-packages]
 ipykernel = "*"
