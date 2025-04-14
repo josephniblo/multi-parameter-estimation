@@ -8,6 +8,9 @@ import pandas as pd
 import argparse  # Import argparse for command-line argument parsing
 
 
+COINCIDENCES_COLUMNS = ["TT"]
+
+
 class FitHOM:
     @staticmethod
     def fit_and_plot(position, coincidences, output_dir):
@@ -122,8 +125,7 @@ if __name__ == "__main__":
     except KeyError:
         raise KeyError("The CSV file must contain a 'position' column")
 
-    coincidences_columns = ["TT"]
-    valid_columns = [col for col in coincidences_columns if col in df.columns]
+    valid_columns = [col for col in COINCIDENCES_COLUMNS if col in df.columns]
 
     if not valid_columns:
         raise ValueError("No valid coincidences columns found in the CSV file")
