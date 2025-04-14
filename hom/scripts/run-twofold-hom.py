@@ -9,6 +9,12 @@ from ttag_console import *
 from movePlates import *
 from pathos import multiprocessing as mp
 
+MOTORISED_STAGE_NAME = "dave"
+DETECTOR_PATTERN = 'd4 - d12'
+DIP_POSITION = 10
+STEP_SIZE = 0.1
+LABELS = ["TT"]
+
 # check timetagger is running
 sys.path.append(os.environ["TTAG"])
 from ttag import *
@@ -32,7 +38,7 @@ if buf.getrunners() == 0:
 
 # find motorised linear stage
 usbDevice = st.findDevices("usb")
-usbName = usbDevice["dave"]
+usbName = usbDevice[MOTORISED_STAGE_NAME]
 
 # assign linear stage
 linearStage = st.device(usbName, os.path.abspath("/home/jh115/emqTools/standa/8CMA06-25_15-Lin_G34.cfg"))
@@ -46,8 +52,8 @@ t_meas = 2
 # first need to find the rough dip position  
 #dipPos = 10.46 #S3
 #dipPos = 7.3 #S2
-dipPos = 12 #S1
-shift = 11.4
+dipPos = DIP_POSITION #S1
+shift = 2
 # scan parameters
 scanRange = [dipPos - shift, dipPos + shift]
 detail2 = dipPos + shift
@@ -60,7 +66,7 @@ detail = [detail1, detail2]
 #detail1 = dipPos - 0.31
 # detail = [detail1, detail2]
 
-stepSize = 0.2
+stepSize = STEP_SIZE
 #scanRange=[1.0,24.0]
 outPoints = np.arange(scanRange[0],scanRange[1], stepSize)
 detailPoints = np.arange(detail[0],detail[1], stepSize)
@@ -73,9 +79,9 @@ time.sleep(1)
 # define detection pattens
 
 #ccTwoFolds = nFold_create('d4, d2 - d14, d11',2)
-ccTwoFolds = nFold_create('d4 - d12',2)
+ccTwoFolds = nFold_create(DETECTOR_PATTERN,2)
 # grab labels generated for the two-fold patterns
-labels = ['TT'] #[str(i) for i in ccTwoFolds.keys()]
+labels = LABELS #[str(i) for i in ccTwoFolds.keys()]
 
 # define measurement parameters
 t_window = 1.0e-9
