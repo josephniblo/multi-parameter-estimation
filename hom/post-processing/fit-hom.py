@@ -10,6 +10,22 @@ import argparse  # Import argparse for command-line argument parsing
 
 COINCIDENCES_COLUMNS = ["TT"]
 
+# Class to hold the results of the fit
+class FitResult:
+    def __init__(self, popt, pcov, r_squared, visibility, type):
+        self.popt = popt
+        self.pcov = pcov
+        self.r_squared = r_squared
+        self.visibility = visibility
+        self.type = type
+    
+    # Method to print the fit results
+    def __str__(self):
+        return (
+            f"Fit Type: {self.type}\n"
+            f"R²: {self.r_squared:.4f}\n"
+            f"Visibility: {self.visibility:.4f}"
+        )
 
 class FitHOM:
     @staticmethod
@@ -51,6 +67,12 @@ class FitHOM:
             x_data, y_data, FitHOM.func_gaussian_linear, popt_g1, r_squared_g1, vis_g1,
             "Gaussian+Linear Fit", os.path.join(output_dir, "Gaussian_Linear_fit.png")
         )
+
+        # Return the fit results
+        return {
+            "Gaussian": FitResult(popt_g, pcov_g, r_squared_g, vis_g, "Gaussian"),
+            "Gaussian+Linear": FitResult(popt_g1, pcov_g1, r_squared_g1, vis_g1, "Gaussian+Linear"),
+        }
 
     @staticmethod
     def plot_fit( x_data, y_data, func, popt, r_squared, visibility, title, filename):
@@ -132,5 +154,10 @@ if __name__ == "__main__":
 
     coincidences = df[valid_columns].sum(axis=1).to_numpy()
 
-    # Run the fitting and plotting
-    FitHOM().fit_and_plot(position, coincidences, output_dir)
+    # Get the fit results
+    fit_results = FitHOM().fit_and_plot(position, coincidences, output_dir)
+    
+    print("-" * 40)
+    for fit_type, result in fit_results.items():
+        print(result)
+        print("-" * 40)  # Separator for readability
