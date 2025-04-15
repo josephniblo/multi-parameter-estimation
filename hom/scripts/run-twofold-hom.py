@@ -5,15 +5,28 @@
 import os, sys, time, datetime
 import numpy as np
 import pandas as pd
-from ttag_console import *
-from movePlates import *
+from ttag_console.ttag_console import *
+from move_plates.movePlates import *
 from pathos import multiprocessing as mp
 
+#----------------#
+# Run parameters #
+#----------------#
+TEMPERATURE = 24 # degrees Celsius
+POWER = 100 # mW
+
+#----------------#
+# --- Options -- #
+#----------------#
 MOTORISED_STAGE_NAME = "dave"
 DETECTOR_PATTERN = 'd4 - d12'
-DIP_POSITION = 10
-STEP_SIZE = 0.1
 LABELS = ["TT"]
+
+# Scan between DIP_POSITION - TRANSLATION_HALF_RANGE and DIP_POSITION + TRANSLATION_HALF_RANGE
+# in steps of size STEP_SIZE
+DIP_POSITION = 10 # mm
+TRANSLATION_HALF_RANGE = 2 # mm
+STEP_SIZE = 0.1 # mm
 
 # check timetagger is running
 sys.path.append(os.environ["TTAG"])
@@ -30,12 +43,6 @@ else:
 if buf.getrunners() == 0:
 	buf.start()
 
-########## Rotation & Linear Stage ##########
-
-# first set projection stages after fusion gate to DD 
-# 3 and 4 are in the tomo/measuremetn stage
-#labelMove('d d', '1 2')
-
 # find motorised linear stage
 usbDevice = st.findDevices("usb")
 usbName = usbDevice[MOTORISED_STAGE_NAME]
@@ -45,15 +52,15 @@ linearStage = st.device(usbName, os.path.abspath("/home/jh115/emqTools/standa/8C
 
 # file creation parameters
 startTime = datetime.datetime.now().strftime("%F--%Hh-%Mm")
-temperature = '20.5'
-power = 100
+temperature = TEMPERATURE
+power = POWER
 
 t_meas = 2
 # first need to find the rough dip position  
 #dipPos = 10.46 #S3
 #dipPos = 7.3 #S2
 dipPos = DIP_POSITION #S1
-shift = 2
+shift = TRANSLATION_HALF_RANGE
 # scan parameters
 scanRange = [dipPos - shift, dipPos + shift]
 detail2 = dipPos + shift
