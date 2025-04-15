@@ -9,11 +9,6 @@ from ttag_console.ttag_console import *
 from move_plates.movePlates import *
 from pathos import multiprocessing as mp
 
-#----------------#
-# Run parameters #
-#----------------#
-TEMPERATURE = 24 # degrees Celsius
-POWER = 100 # mW
 
 #----------------#
 # --- Options -- #
@@ -27,6 +22,43 @@ LABELS = ["TT"]
 DIP_POSITION = 10 # mm
 TRANSLATION_HALF_RANGE = 2 # mm
 STEP_SIZE = 0.1 # mm
+
+MEASUREMENT_TIME = 2 # seconds
+
+STANDA_CONFIG_FILE_LOCATION = os.path.abspath("/home/jh115/emqTools/standa/8CMA06-25_15-Lin_G34.cfg")
+
+#----------------#
+# Run parameters #
+#----------------#
+def throw_parameter_error():
+    print("Error: power not specified correctly.")
+    print("Usage: python run-twofold-hom.py <temperature> <power>")
+    print("eg: python run-twofold-hom.py 23.2C 101mW")
+    sys.exit(1)
+
+# get the run parameters from the command line
+if len(sys.argv) > 1:
+    try:
+        TEMPERATURE = sys.argv[1]
+        POWER = sys.argv[2]
+    except:
+        throw_parameter_error()
+else:
+    throw_parameter_error()
+
+# Validate the run parameters
+# expect temperature in degrees Celsius like "20.0C"
+if TEMPERATURE[-1] != "C":
+    throw_parameter_error()
+# expect power in mW like "10mW"
+if POWER[-2:] != "mW":
+    throw_parameter_error()
+
+try:
+    temperature = float(TEMPERATURE[:-1])
+    power = float(POWER[:-2])
+except ValueError:
+     throw_parameter_error()
 
 # check timetagger is running
 sys.path.append(os.environ["TTAG"])
@@ -48,14 +80,12 @@ usbDevice = st.findDevices("usb")
 usbName = usbDevice[MOTORISED_STAGE_NAME]
 
 # assign linear stage
-linearStage = st.device(usbName, os.path.abspath("/home/jh115/emqTools/standa/8CMA06-25_15-Lin_G34.cfg"))
+linearStage = st.device(usbName, STANDA_CONFIG_FILE_LOCATION)
 
 # file creation parameters
 startTime = datetime.datetime.now().strftime("%F--%Hh-%Mm")
-temperature = TEMPERATURE
-power = POWER
 
-t_meas = 2
+t_meas = MEASUREMENT_TIME # time to measure in seconds
 # first need to find the rough dip position  
 #dipPos = 10.46 #S3
 #dipPos = 7.3 #S2
@@ -131,6 +161,7 @@ for i, j in enumerate(scanPoints):
 
 # formatting output filename
 workingDir = os.getcwd()
+repo_root = os.popen('git rev-parse --show-toplevel').read().strip()
 
 # file column header labels - labels is automatically generated
 dfLabels = ['position','s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12','s13','s14','s15','s16'] + labels + ['read_time']
@@ -140,10 +171,12 @@ df = pd.DataFrame(data, columns = dfLabels)
 
 # grab end time to format file name
 endTime = datetime.datetime.now().strftime("%F--%Hh-%Mm")
-fName = "/Sag3_" + startTime + "_" + endTime + "_%dmW_%sdeg.csv" %(power, temperature)
+fName = "Sag3_" + startTime + "_" + endTime + "_%dmW_%sdeg.csv" %(power, temperature)
 
 # write data to file
-df.to_csv(workingDir + fName)
+out_file_path = os.path.join(repo_root, "hom", "data", fName)
+print("Writing data to file: %s" % out_file_path)
+df.to_csv(out_file_path)
 
 
 linearStage.goTo(dipPos)
