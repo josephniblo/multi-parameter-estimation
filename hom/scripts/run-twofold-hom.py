@@ -1,7 +1,5 @@
-
 '''Using S3 through the multi-param HOM setup'''
 
-# import a bunch of things
 import os, sys, time, datetime
 import numpy as np
 import pandas as pd
@@ -17,13 +15,17 @@ MOTORISED_STAGE_NAME = "dave"
 DETECTOR_PATTERN = 'd4 - d12'
 LABELS = ["TT"]
 
-# Scan between DIP_POSITION - TRANSLATION_HALF_RANGE and DIP_POSITION + TRANSLATION_HALF_RANGE
-# in steps of size STEP_SIZE
+# Scan between DIP_POSITION - TRANSLATION_HALF_RANGE and DIP_POSITION + TRANSLATION_HALF_RANGE in steps of size STEP_SIZE
+# and between DIP_POSITION - DETAIL_HALF_RANGE and DIP_POSITION + DETAIL_HALF_RANGE with additional accuracy 
+# in steps of size DETAIL_STEP_SIZE
 DIP_POSITION = 10 # mm
 TRANSLATION_HALF_RANGE = 4 # mm
 STEP_SIZE = 0.2 # mm
+DETAIL_HALF_RANGE = 0.5 # mm
+DETAIL_STEP_SIZE = 0.1 # mm
 
 MEASUREMENT_TIME = 2 # seconds
+COINCIDENCE_WINDOW = 1.0e-9 # seconds
 
 STANDA_CONFIG_FILE_LOCATION = os.path.abspath("/home/jh115/emqTools/standa/8CMA06-25_15-Lin_G34.cfg")
 
@@ -39,8 +41,8 @@ def throw_parameter_error():
 # get the run parameters from the command line
 if len(sys.argv) > 1:
     try:
-        TEMPERATURE = sys.argv[1]
-        POWER = sys.argv[2]
+        temperature = sys.argv[1]
+        power = sys.argv[2]
     except:
         throw_parameter_error()
 else:
@@ -48,15 +50,15 @@ else:
 
 # Validate the run parameters
 # expect temperature in degrees Celsius like "20.0C"
-if TEMPERATURE[-1] != "C":
+if temperature[-1] != "C":
     throw_parameter_error()
 # expect power in mW like "10mW"
-if POWER[-2:] != "mW":
+if power[-2:] != "mW":
     throw_parameter_error()
 
 try:
-    temperature = float(TEMPERATURE[:-1])
-    power = float(POWER[:-2])
+    temperature = float(temperature[:-1])
+    power = float(power[:-2])
 except ValueError:
      throw_parameter_error()
 
@@ -76,113 +78,71 @@ if buf.getrunners() == 0:
 	buf.start()
 
 # find motorised linear stage
-usbDevice = st.findDevices("usb")
-usbName = usbDevice[MOTORISED_STAGE_NAME]
+usb_device = st.findDevices("usb")
+usb_name = usb_device[MOTORISED_STAGE_NAME]
+linear_stage = st.device(usb_name, STANDA_CONFIG_FILE_LOCATION)
 
-# assign linear stage
-linearStage = st.device(usbName, STANDA_CONFIG_FILE_LOCATION)
+start_time = datetime.datetime.now().strftime("%F--%Hh-%Mm")
 
-# file creation parameters
-startTime = datetime.datetime.now().strftime("%F--%Hh-%Mm")
+scan_range = [DIP_POSITION - TRANSLATION_HALF_RANGE, DIP_POSITION + TRANSLATION_HALF_RANGE]
+detail_range = [DIP_POSITION - DETAIL_HALF_RANGE, DIP_POSITION + DETAIL_HALF_RANGE]
 
-t_meas = MEASUREMENT_TIME # time to measure in seconds
-# first need to find the rough dip position  
-#dipPos = 10.46 #S3
-#dipPos = 7.3 #S2
-dipPos = DIP_POSITION #S1
-shift = TRANSLATION_HALF_RANGE
-# scan parameters
-scanRange = [dipPos - shift, dipPos + shift]
-detail2 = dipPos + shift
-detail1 = dipPos - shift
-detail = [detail1, detail2]
+coarse_points = np.arange(scan_range[0],scan_range[1], STEP_SIZE)
+detail_points = np.arange(detail_range[0],detail_range[1], DETAIL_STEP_SIZE)
 
-# scan parameters for detailed range
-# scanRange = [dipPos - 4, dipPos + 4]
-#detail2 = dipPos + 0.31
-#detail1 = dipPos - 0.31
-# detail = [detail1, detail2]
+scan_points = np.sort(np.unique(np.around(np.concatenate((coarse_points, detail_points)), decimals=2)))
 
-stepSize = STEP_SIZE
-#scanRange=[1.0,24.0]
-outPoints = np.arange(scanRange[0],scanRange[1], stepSize)
-detailPoints = np.arange(detail[0],detail[1], stepSize)
-
-scanPoints = np.sort(np.unique(np.around(np.concatenate((outPoints, detailPoints)), decimals=2)))
-
-linearStage.goTo(scanPoints[0])
+linear_stage.goTo(scan_points[0])
 time.sleep(1)
 
-# define detection pattens
-
-#ccTwoFolds = nFold_create('d4, d2 - d14, d11',2)
 ccTwoFolds = nFold_create(DETECTOR_PATTERN,2)
-# grab labels generated for the two-fold patterns
-labels = LABELS #[str(i) for i in ccTwoFolds.keys()]
-
-# define measurement parameters
-t_window = 1.0e-9
 
 keys = list(ccTwoFolds.keys())
-opts = [(key, t_meas, t_window, ccTwoFolds[key][0], ccTwoFolds[key][1]) for key in keys]
+opts = [(key, MEASUREMENT_TIME, COINCIDENCE_WINDOW, ccTwoFolds[key][0], ccTwoFolds[key][1]) for key in keys]
 optsSize = len(opts)
 phase = 0
 
 pool = mp.Pool(8)
 print('Multiprocessing started successfully.')
 
-# pre-alloc array structure - numpy doesnt index zero to create this array?
-data = np.zeros((len(scanPoints), 16 + 1 + 2), dtype = 'object')
-
-# adding the phase due to PBS
+# TODO: pre-alloc array structure - numpy doesnt index zero to create this array?
+data = np.zeros((len(scan_points), 16 + len(LABELS) + 2), dtype = 'object')
 
 ########## Data Aquisition ##########
+for i, j in enumerate(scan_points):
 
-for i, j in enumerate(scanPoints):
-
-    linearStage.goTo(j)
-    time.sleep(1 + t_meas)
-    singles = buf.singles(t_meas)
+    linear_stage.goTo(j)
+    time.sleep(1 + MEASUREMENT_TIME)
+    singles = buf.singles(MEASUREMENT_TIME)
     
     # stage position
     data[i, 0] = j 
 
-   # singles are next 8, only the first 8 channels from tagger used
-    #data[i, 1:9] = singles[0:16] #data[i: 1:17]
-    data[i, 1:17] = singles[0:16] #data[i: 1:17]
+    # singles are next 8, only the first 8 channels from tagger used
+    data[i, 1:17] = singles[0:16]
     # acquire coincidences
     result = pool.map(lambda i: buf.multicoincidences(*opts[i][1::]), range(len(opts)))
     
     # all coincidences are the next 16 - this is not true for us. I think this element should just span 2 colums
-    data[i, 17:18] = result
+    data[i, 17:(17 + len(LABELS))] = result
 
     # read time is last element
-    data[i, 18] = t_meas
+    data[i, (17 + len(LABELS))] = MEASUREMENT_TIME
 
-# formatting output filename
-workingDir = os.getcwd()
+df_labels = ['position','s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12','s13','s14','s15','s16'] + LABELS + ['read_time']
+df = pd.DataFrame(data, columns = df_labels)
+
+end_time = datetime.datetime.now().strftime("%F--%Hh-%Mm")
 repo_root = os.popen('git rev-parse --show-toplevel').read().strip()
 
-# file column header labels - labels is automatically generated
-dfLabels = ['position','s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12','s13','s14','s15','s16'] + labels + ['read_time']
+file_name = "Sag3_" + start_time + "_" + end_time + "_%dmW_%sdeg.csv" %(power, temperature)
+out_file_path = os.path.join(repo_root, "hom", "data", file_name)
 
-# create Pandas dataframe to hold data
-df = pd.DataFrame(data, columns = dfLabels)
-
-# grab end time to format file name
-endTime = datetime.datetime.now().strftime("%F--%Hh-%Mm")
-fName = "Sag3_" + startTime + "_" + endTime + "_%dmW_%sdeg.csv" %(power, temperature)
-
-# write data to file
-out_file_path = os.path.join(repo_root, "hom", "data", fName)
 print("Writing data to file: %s" % out_file_path)
 df.to_csv(out_file_path)
 
-
-linearStage.goTo(dipPos)
+linear_stage.goTo(DIP_POSITION)
 print("Moved to dip pos")
 
-
 # close all devices
-linearStage.closeDevice()
-
+linear_stage.closeDevice()
