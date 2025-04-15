@@ -5,7 +5,7 @@
 import os, sys, time, datetime
 import numpy as np
 import pandas as pd
-from ttag_console.ttag_console import *
+from ttag_console import *
 from move_plates.movePlates import *
 from pathos import multiprocessing as mp
 

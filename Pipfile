@@ -14,10 +14,10 @@ pythreejs = "*"
 scipy = "*"
 pandas = "*"
 state-preparation = {git = "https://github.com/josephniblo/state-preparation.git"}
-ttag-console = {file = "shared-scripts/ttag-console", editable = true}
 scripts = {file = "scripts-old-versions/scripts", editable = true}
 pathos = "*"
 setuptools = "*"
+ttag-console = {editable = true, ref = "multi-parameter-estimation", git = "https://github.com/edinburgh-mostly-quantum-lab/ttag-console.git"}
 
 [dev-packages]
 ipykernel = "*"

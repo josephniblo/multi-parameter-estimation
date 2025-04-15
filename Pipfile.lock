@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "bde60bdc5379f655a286e9e1eb9a0a2d13b6c0c27eabdcb78c87406c1e31da94"
+            "sha256": "08628c9c417386d7d165d1195eb4f1da1005c2d27fa7e1005a6f75617362ee84"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -1058,7 +1058,8 @@
         },
         "ttag-console": {
             "editable": true,
-            "file": "shared-scripts/ttag-console"
+            "git": "https://github.com/edinburgh-mostly-quantum-lab/ttag-console.git",
+            "ref": "d67ba70cd6a3bdebc611564e9ddd8e319721cd6e"
         },
         "tzdata": {
             "hashes": [
