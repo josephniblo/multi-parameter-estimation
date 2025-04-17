@@ -18,13 +18,15 @@ class FitResult:
         self.r_squared = r_squared
         self.visibility = visibility
         self.type = type
+        self.dip_position = popt[1]
     
     # Method to print the fit results
     def __str__(self):
         return (
             f"Fit Type: {self.type}\n"
             f"R²: {self.r_squared:.4f}\n"
-            f"Visibility: {self.visibility:.4f}"
+            f"Visibility: {self.visibility:.4f}\n"
+            f"Dip position: {self.dip_position:.4f}\n"
         )
 
 class FitHOM:
