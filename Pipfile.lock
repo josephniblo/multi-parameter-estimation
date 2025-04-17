@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "08628c9c417386d7d165d1195eb4f1da1005c2d27fa7e1005a6f75617362ee84"
+            "sha256": "51849fb2ea34ea2361480268bd1a576afba06a8e72e4da160369483711bd6b04"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -420,6 +420,11 @@
             ],
             "markers": "python_version >= '3.8'",
             "version": "==0.1.7"
+        },
+        "move-plates": {
+            "editable": true,
+            "git": "https://github.com/edinburgh-mostly-quantum-lab/move-plates.git",
+            "ref": "06ba2c371bf16d5491be479dd4661e34eadee509"
         },
         "mpmath": {
             "hashes": [
