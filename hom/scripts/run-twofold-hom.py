@@ -7,7 +7,6 @@ from ttag_console import *
 from move_plates import *
 from pathos import multiprocessing as mp
 
-sys.exit(0)
 
 #----------------#
 # --- Options -- #
