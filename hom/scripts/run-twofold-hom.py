@@ -19,8 +19,8 @@ LABELS = ["TT"]
 # and between DIP_POSITION - DETAIL_HALF_RANGE and DIP_POSITION + DETAIL_HALF_RANGE with additional accuracy 
 # in steps of size DETAIL_STEP_SIZE
 DIP_POSITION = 10 # mm
-TRANSLATION_HALF_RANGE = 4 # mm
-STEP_SIZE = 0.2 # mm
+TRANSLATION_HALF_RANGE = 2 # mm
+STEP_SIZE = 0.4 # mm
 DETAIL_HALF_RANGE = 0.5 # mm
 DETAIL_STEP_SIZE = 0.1 # mm
 
@@ -87,8 +87,9 @@ start_time = datetime.datetime.now().strftime("%F--%Hh-%Mm")
 scan_range = [DIP_POSITION - TRANSLATION_HALF_RANGE, DIP_POSITION + TRANSLATION_HALF_RANGE]
 detail_range = [DIP_POSITION - DETAIL_HALF_RANGE, DIP_POSITION + DETAIL_HALF_RANGE]
 
-coarse_points = np.arange(scan_range[0],scan_range[1], STEP_SIZE)
-detail_points = np.arange(detail_range[0],detail_range[1], DETAIL_STEP_SIZE)
+# inclusive
+coarse_points = np.arange(scan_range[0],scan_range[1] + STEP_SIZE, STEP_SIZE, )
+detail_points = np.arange(detail_range[0],detail_range[1] + DETAIL_STEP_SIZE, DETAIL_STEP_SIZE)
 
 scan_points = np.sort(np.unique(np.around(np.concatenate((coarse_points, detail_points)), decimals=2)))
 
