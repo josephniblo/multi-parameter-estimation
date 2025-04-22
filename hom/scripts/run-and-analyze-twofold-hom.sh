@@ -13,7 +13,7 @@
 set -e
 
 if [ "$#" -ne 3 ]; then
-    echo "Usage: $0 <Temperature> <Power>"
+    echo "Usage: $0 <Temperature> <Power> <Subfolder>"
     exit 1
 fi
 
