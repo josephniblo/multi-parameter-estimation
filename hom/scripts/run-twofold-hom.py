@@ -19,12 +19,12 @@ LABELS = ["TT"]
 # and between DIP_POSITION - DETAIL_HALF_RANGE and DIP_POSITION + DETAIL_HALF_RANGE with additional accuracy 
 # in steps of size DETAIL_STEP_SIZE
 DIP_POSITION = 9.94 # mm
-TRANSLATION_HALF_RANGE = 6 # mm
-STEP_SIZE = 0.2 # mm
-DETAIL_HALF_RANGE = 0.5 # mm
+TRANSLATION_HALF_RANGE = 4 # mm
+STEP_SIZE = 0.4 # mm
+DETAIL_HALF_RANGE = 0.4 # mm
 DETAIL_STEP_SIZE = 0.05 # mm
 
-MEASUREMENT_TIME = 4 # seconds
+MEASUREMENT_TIME = 2 # seconds
 COINCIDENCE_WINDOW = 1.0e-9 # seconds
 
 STANDA_CONFIG_FILE_LOCATION = os.path.abspath("/home/jh115/emqTools/standa/8CMA06-25_15-Lin_G34.cfg")
