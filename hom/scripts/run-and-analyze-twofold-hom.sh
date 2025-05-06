@@ -28,7 +28,7 @@ pipenv run python ./scripts/run-twofold-hom.py "$TEMPERATURE" "$POWER"
 # which is the last file in ./data
 OUTPUT_FILE=$(ls -t ./data | head -n 1)
 
-pipenv run python ./post-processing/fit-hom.py "./data/$OUTPUT_FILE"
+pipenv run python ./post-processing/fit-hom.py "./data/$SUBFOLDER/$OUTPUT_FILE"
 
 # move the output file to the results directory
 mv "./data/$OUTPUT_FILE" "./data/$SUBFOLDER/$OUTPUT_FILE"
