@@ -62,9 +62,6 @@ def get_max_spanning_tree(pairwise_delays):
 
     return list(mst.edges(data=True))
 
-        
-fixed_delays = {}
-
 
 # Get all pairwise coarse delays
 # Initial coarse range for delay scan: +/- 1000 ns
@@ -93,13 +90,45 @@ for i, det_i in enumerate(detector_indices):
 # Get the maximum spanning tree
 mst_edges = get_max_spanning_tree(pairwise_delays)
 
+delays = {}
+
 print("Maximum Spanning Tree Edges:")
 for edge in mst_edges:
     det_i, det_j, data = edge
     fine_delay = data['fine_delay']
     significance = data['weight']
-    print(f"Detectors {det_i} and {det_j}: Fine delay = {fine_delay*1e9:.2f} ns, Significance = {significance:.2f}")
 
+    print(f"Detectors {det_i+1} and {det_j+1}: Fine delay = {fine_delay*1e9:.2f} ns, Significance = {significance:.2f}")
+
+
+mst_graph = nx.Graph()
+for i, j, data in mst_edges:
+    mst_graph.add_edge(i, j, delay=data['fine_delay'])
+
+# Compute signed delays from reference using BFS
+reference = detector_indices[0]
+delays = {reference: 0.0}
+visited = set([reference])
+queue = [reference]
+
+while queue:
+    current = queue.pop(0)
+    for neighbor in mst_graph.neighbors(current):
+        if neighbor not in visited:
+            edge_data = mst_graph[current][neighbor]
+            delay = edge_data['delay']
+            # Direction: from current to neighbor
+            if (current, neighbor) in mst_graph.edges:
+                delays[neighbor] = delays[current] + delay
+            else:
+                delays[neighbor] = delays[current] - delay
+            visited.add(neighbor)
+            queue.append(neighbor)
+
+# Print delays
+print(f"\nRelative delays from reference detector {reference}")
+for det in sorted(delays):
+    print(f"Detector {det+1}: Delay = {delays[det]*1e9:.2f} ns")
 
 # plt.plot(xs,cc)
 # plt.xlabel("Delay [s]")
