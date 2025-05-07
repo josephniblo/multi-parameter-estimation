@@ -12,7 +12,7 @@ from pathos import multiprocessing as mp
 # --- Options -- #
 #----------------#
 MOTORISED_STAGE_NAME = "dave"
-DETECTOR_PATTERN = 'd4 - d12'
+DETECTOR_PATTERN = 'd2 - d12'
 LABELS = ["TT"]
 
 # Scan between DIP_POSITION - TRANSLATION_HALF_RANGE and DIP_POSITION + TRANSLATION_HALF_RANGE in steps of size STEP_SIZE
@@ -22,9 +22,9 @@ DIP_POSITION = 9.94 # mm
 TRANSLATION_HALF_RANGE = 4 # mm
 STEP_SIZE = 0.4 # mm
 DETAIL_HALF_RANGE = 0.4 # mm
-DETAIL_STEP_SIZE = 0.05 # mm
+DETAIL_STEP_SIZE = 0.1 # mm
 
-MEASUREMENT_TIME = 2 # seconds
+MEASUREMENT_TIME = 1 # seconds
 COINCIDENCE_WINDOW = 1.0e-9 # seconds
 
 STANDA_CONFIG_FILE_LOCATION = os.path.abspath("/home/jh115/emqTools/standa/8CMA06-25_15-Lin_G34.cfg")
