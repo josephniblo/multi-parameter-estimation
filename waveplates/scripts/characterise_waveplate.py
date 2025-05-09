@@ -2,7 +2,7 @@ import time
 import pandas as pd
 from ttag_console import *
 from move_plates import *
-import matplotlib.pyplot as plt
+from pathos import multiprocessing as mp
 
 sys.path.append(os.environ["TTAG"])
 from ttag import *
@@ -21,33 +21,76 @@ if buf.getrunners() == 0:
 #----------------#
 # --- Options -- #
 #----------------#
-DETECTOR_PATTERN = 'd12 - d2' # TODO: T - R
 STANDA_CONFIG_FILE_LOCATION = os.path.abspath("/home/jh115/emqTools/standa/8MPR16-1.cfg")
-
 MEASUREMENT_TIME = 1 # seconds
-WAVEPLATE_NAME = "ht"
 
-# ensure the required data directory exists
-repo_root = os.popen('git rev-parse --show-toplevel').read().strip()
-data_dir = os.path.join(repo_root, "waveplates", "data", WAVEPLATE_NAME)
-if not os.path.exists(data_dir):
-	os.makedirs(data_dir)
+COINCIDENCE_WINDOW = 1.0e-9 # seconds
 
-singles_df = pd.DataFrame(columns = ["angle", "singles"])
+def run_characterisation(waveplate_name, singles_detector_name, coincidence_detector_name, angles, data_dir):
+	counts_df = pd.DataFrame(columns = ["angle", "singles", "coincidences"])
 
-for i in range(9):
-	angleMove([10*i], [WAVEPLATE_NAME])
-	time.sleep(1 + MEASUREMENT_TIME)
+	data_file_name = "counts.csv"
+	data_file_path = os.path.join(data_dir, data_file_name)
 
-	singles = buf.singles(MEASUREMENT_TIME)[11]
+	if os.path.exists(data_file_path):
+		print("Loading existing data.")
+		counts_df = pd.read_csv(os.path.join(data_file_path))
 
-	singles_df = pd.concat([singles_df, pd.DataFrame({"angle": [10*i], "singles": [singles]})], ignore_index=True)	
+	singles_detector_index = singles_detector_name - 1
+	coincidence_detector_index = coincidence_detector_name - 1
 
-	# output to csv as we go
-	out_file_name = "singles.csv"
-	out_file_path = os.path.join(data_dir, out_file_name)
-	singles_df.to_csv(out_file_path, index=False)
+	# Set up the coincidences
+	detector_pattern = f"d{singles_detector_name} - d{coincidence_detector_name}"
+	print("Detector pattern: %s" % detector_pattern)
+	twofolds = nFold_create(detector_pattern, 2)
 
-	print("Angle: %d" % (10*i))
-	print("Singles: %s" % singles)
-	print("")
+	keys = list(twofolds.keys())
+	opts = [(key, MEASUREMENT_TIME, COINCIDENCE_WINDOW, twofolds[key][0], twofolds[key][1]) for key in keys]
+	opts_size = len(opts)
+
+	pool = mp.Pool(8)
+	print('Multiprocessing started successfully.')
+
+	for target_angle in angles:
+		angleMove([target_angle], [waveplate_name])
+		time.sleep(1 + MEASUREMENT_TIME)
+
+		singles = buf.singles(MEASUREMENT_TIME)[singles_detector_index]
+		coincidences = pool.map(lambda i: buf.multicoincidences(*opts[i][1::]), range(len(opts)))
+
+		print("Singles: %s" % singles)
+		print("Coincidences: %s" % coincidences)
+
+		counts_df = pd.concat([counts_df, pd.DataFrame({
+			"angle": [target_angle],
+			"singles": [singles],
+			"coincidences": [sum(coincidences)]
+		})], ignore_index=True)
+
+		counts_df.to_csv(data_file_path, index=False)
+
+		print("Angle: %d" % (target_angle))
+		print("Singles: %s" % singles)
+		print("Coincidences: %s" % coincidences)
+		print("")
+
+
+if __name__ == "__main__":
+	# get the wavdeplate name from the command line
+	# get the main detector from the command line
+	# get the coincidences detector from the command line
+	if len(sys.argv) == 4:
+		waveplate_name = sys.argv[1]
+		singles_detector_name = int(sys.argv[2])
+		coincidence_detector_name = int(sys.argv[3])
+	else:
+		print("Error: waveplate name, singles detector name and coincidence detector name not specified correctly.")
+		print("Usage: python characterise_waveplate.py <waveplate_name> <singles_detector_name> <coincidence_detector_name>")
+		print("eg: python characterise_waveplate.py ht 12 2")
+		sys.exit(1)
+	# ensure the required data directory exists
+	repo_root = os.popen('git rev-parse --show-toplevel').read().strip()
+	data_dir = os.path.join(repo_root, "waveplates", "data", waveplate_name)
+	
+	angles = [i for i in range(0, 180, 20)]
+	run_characterisation(waveplate_name, singles_detector_name, coincidence_detector_name, angles, data_dir)

@@ -1,0 +1,2 @@
+- Don't forget to come out of the HOM dip, so that you can see coincidences!
+- Run as `pipenv run python ./scripts/characterise_and_analyse_waveplate.py ht 12 2` where the first detector is used for singles and the second is used for coincidences with the first
