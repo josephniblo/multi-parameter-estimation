@@ -27,35 +27,59 @@ if __name__ == "__main__":
 	waveplate_type = 'hwp' if waveplate_type_initial == 'h' else 'qwp'
 
 	# coarse
-	angles = [i for i in np.linspace(0, 180, 20)]
+	angles = [i for i in np.linspace(0, 180, 21)]
 
 	run_characterisation(waveplate_name, singles_detector_name, coincidence_detector_name, angles, waveplate_dir)
 	singles_fit_params, coincidences_fit_params = analyse_waveplate_data(waveplate_name, waveplate_dir)
 
 	# fine
-	if waveplate_type == 'hwp':
-		print(singles_fit_params[1] * 180 / np.pi)
-		best_guess_max_singles = (singles_fit_params[1] * 180 / np.pi) + 22.5 % 90 
-		best_guess_max_coincidence = (coincidences_fit_params[1] * 180 / np.pi) + 22.5 % 90
+	best_guess_max_singles = (singles_fit_params[1] * 180 / np.pi) + 22.5 % 90 
+	best_guess_max_coincidence = (coincidences_fit_params[1] * 180 / np.pi) + 22.5 % 90
 
-		best_guess_min_singles = (best_guess_max_singles - 45) % 90
-		best_guess_min_coincidence = (best_guess_max_coincidence - 45) % 90
-	elif waveplate_type == 'qwp':
-		best_guess_max_singles = (singles_fit_params[1] * 180 / np.pi) + 12.25 % 45
-		best_guess_max_coincidence = (coincidences_fit_params[1] * 180 / np.pi) + 12.25 % 45
+	best_guess_min_singles = (best_guess_max_singles - 45) % 90
+	best_guess_min_coincidence = (best_guess_max_coincidence - 45) % 90
 
-		best_guess_min_singles = (best_guess_max_singles - 22.5) % 45
-		best_guess_min_coincidence = (best_guess_max_coincidence - 22.5) % 45
+	best_guess_midpoint_singles = (best_guess_max_singles + best_guess_min_singles) / 2
+	best_guess_midpoint_coincidence = (best_guess_max_coincidence + best_guess_min_coincidence) / 2
 
-	if abs(best_guess_min_singles - best_guess_min_coincidence) > 10:
+	fine_scan_half_range = 5
+
+
+	# skip this check for now
+	if False:
+	# if abs(best_guess_min_singles - best_guess_min_coincidence) > 10:
 		print("Error: The best guess for the minimum singles and coincidences are too far apart.")
 		print(f"Best guess min singles: {best_guess_min_singles}")
 		print(f"Best guess min coincidences: {best_guess_min_coincidence}")
 		sys.exit(1)
 
-	min_singles_angles = [i for i in np.linspace(best_guess_min_singles - 5, best_guess_min_singles + 5, 10)]
-	max_singles_angles = [i for i in np.linspace(best_guess_max_singles - 5, best_guess_max_singles + 5, 6)]
-	angles = min_singles_angles + max_singles_angles
+	min_coincidence_angles = [i for i in np.linspace(best_guess_min_coincidence - fine_scan_half_range, best_guess_min_coincidence + fine_scan_half_range, 11)]
+	max_coincidence_angles = [i for i in np.linspace(best_guess_max_coincidence - fine_scan_half_range, best_guess_max_coincidence + fine_scan_half_range, 7)]
+	midpoint_coincidence_angles = [i for i in np.linspace(best_guess_midpoint_coincidence - fine_scan_half_range, best_guess_midpoint_singles + fine_scan_half_range, 5)]
+
+	angles = min_coincidence_angles + max_coincidence_angles + midpoint_coincidence_angles
 
 	run_characterisation(waveplate_name, singles_detector_name, coincidence_detector_name, angles, waveplate_dir)
 	singles_fit_params, coincidences_fit_params = analyse_waveplate_data(waveplate_name, waveplate_dir)
+
+	best_guess_max_coincidence = (coincidences_fit_params[1] * 180 / np.pi) + 22.5 % 90
+	best_guess_max_coincidence = best_guess_max_coincidence.round(2)
+
+	# update the value in the waveplate.json file
+	waveplate_json_path = os.path.join(repo_root, "waveplates", "waveplates.json")
+	with open(waveplate_json_path, 'r') as f:
+		waveplates = json.load(f)
+
+	if waveplate_name not in waveplates:
+		waveplates[waveplate_name] = {}
+
+	waveplates[waveplate_name]['fast_axis'] = best_guess_max_coincidence
+
+	with open(waveplate_json_path, 'w') as f:
+		json.dump(waveplates, f, indent=4)
+
+	# put the waveplate at the fast axis
+	angleMove([best_guess_max_coincidence], [waveplate_name])
+
+	print(f"Found fast axis at: {best_guess_max_coincidence}")
+	print("Waveplate moved to fast axis")

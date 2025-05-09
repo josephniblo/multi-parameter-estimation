@@ -11,20 +11,12 @@ def sine_function(x, amplitude, phase, offset, frequency):
 
 # Fit the sine curve
 def fit_sine_curve(x, y, waveplate_type='hwp'):
-    # Determine frequency based on waveplate type
-    if waveplate_type == 'hwp':
-        frequency = 4
-    elif waveplate_type == 'qwp':
-        frequency = 8
-    else:
-        raise ValueError("Invalid waveplate type. Use 'hwp' or 'qwp'.")
-
     # Initial guesses for amplitude, phase, and offset
-    initial_guess = [np.ptp(y) / 2, 0, np.mean(y)]
-    params, _ = curve_fit(lambda x, amplitude, phase, offset: sine_function(x, amplitude, phase, offset, frequency), 
-                          x, y, p0=initial_guess, bounds=(0, [np.inf, 2 * np.pi, np.inf]))
+    initial_guess = [np.ptp(y) / 2, np.pi/4, np.mean(y)]
+    params, _ = curve_fit(lambda x, amplitude, phase, offset: sine_function(x, amplitude, phase, offset, 4), 
+                          x, y, p0=initial_guess, bounds=(0, [np.inf, np.pi, np.inf]))
 
-    params = np.append(params, frequency)
+    params = np.append(params, 4)
 
     return params
 
@@ -39,7 +31,7 @@ def plot_and_save(x, y, params, output_file):
     plt.plot(x_fit, fitted_y, label='Fitted Sine Curve', color='red')
     plt.legend()
     plt.xlabel('Angle (degrees)')
-    plt.ylabel('Singles')
+    plt.ylabel('Counts')
     plt.title('Sine Curve Fitting')
 
     # Add the parameters as text on the plot
@@ -104,4 +96,4 @@ def analyse_waveplate_data(waveplate_name, data_dir):
     return singles_params, coincidences_params
 
 if __name__ == "__main__":
-    analyse_waveplate_data('ht', './data/ht/2025-05-08_16-16-11')
+    analyse_waveplate_data('qr', './data/qr/2025-05-09_11-57-49')

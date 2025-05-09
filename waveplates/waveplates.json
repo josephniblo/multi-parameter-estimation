@@ -1,0 +1,26 @@
+{
+    "ht": {
+        "fast_axis": 28.48
+    },
+    "hr": {
+        "fast_axis": 46.21
+    },
+    "hlb": {
+        "fast_axis": 48.17
+    },
+    "hla": {
+        "fast_axis": 147.29
+    },
+    "qt": {
+        "fast_axis": 99.33
+    },
+    "qr": {
+        "fast_axis": 63.51
+    },
+    "qla": {
+        "fast_axis": 45.36
+    },
+    "qlb": {
+        "fast_axis": 31.87
+    }
+}
