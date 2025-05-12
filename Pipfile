@@ -20,6 +20,7 @@ setuptools = "*"
 ttag-console = {editable = true, ref = "multi-parameter-estimation", git = "https://github.com/edinburgh-mostly-quantum-lab/ttag-console.git"}
 move-plates = {editable = true, ref = "multi-parameter-estimation", git = "https://github.com/edinburgh-mostly-quantum-lab/move-plates.git"}
 networkx = {extras = ["default"], version = "*"}
+cvxpy = "*"
 
 [dev-packages]
 ipykernel = "*"
