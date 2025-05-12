@@ -1,26 +1,34 @@
 {
     "ht": {
-        "fast_axis": 28.48
+        "fast_axis": 28.48,
+        "type": "hwp"
     },
     "hr": {
-        "fast_axis": 46.21
+        "fast_axis": 46.21,
+        "type": "hwp"
     },
     "hlb": {
-        "fast_axis": 48.17
+        "fast_axis": 48.17,
+        "type": "hwp"
     },
     "hla": {
-        "fast_axis": 147.29
+        "fast_axis": 147.29,
+        "type": "hwp"
     },
     "qt": {
-        "fast_axis": 99.33
+        "fast_axis": 99.33,
+        "type": "qwp"
     },
     "qr": {
-        "fast_axis": 63.51
+        "fast_axis": 63.51,
+        "type": "qwp"
     },
     "qla": {
-        "fast_axis": 45.36
+        "fast_axis": 45.36,
+        "type": "qwp"
     },
     "qlb": {
-        "fast_axis": 31.87
+        "fast_axis": 31.87,
+        "type": "qwp"
     }
 }

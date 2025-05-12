@@ -12,13 +12,13 @@ from pathos import multiprocessing as mp
 # --- Options -- #
 #----------------#
 MOTORISED_STAGE_NAME = "dave"
-DETECTOR_PATTERN = 'd4 - d10'
+DETECTOR_PATTERN = 'd4 - d12'
 LABELS = ["TT"]
 
 # Scan between DIP_POSITION - TRANSLATION_HALF_RANGE and DIP_POSITION + TRANSLATION_HALF_RANGE in steps of size STEP_SIZE
 # and between DIP_POSITION - DETAIL_HALF_RANGE and DIP_POSITION + DETAIL_HALF_RANGE with additional accuracy 
 # in steps of size DETAIL_STEP_SIZE
-DIP_POSITION = 9.94 # mm
+DIP_POSITION = 10.27 # mm
 TRANSLATION_HALF_RANGE = 4 # mm
 STEP_SIZE = 0.4 # mm
 DETAIL_HALF_RANGE = 0.4 # mm
