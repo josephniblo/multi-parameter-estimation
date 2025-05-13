@@ -18,12 +18,13 @@ import matplotlib.cm as cm
 
 #file_path = '/home/jh115/Heriot-Watt University Team Dropbox/RES_EPS_EMQL/projects/QuantumSecretSharing/Scripts/Tomo_data_to_process'
 
-data = pd.read_csv('./2025-03-16--16h-51m_16--16h-53m_2qb_tomo_sagnac1_20mW_A.csv')
+# data = pd.read_csv('./2025-03-16--16h-51m_16--16h-53m_2qb_tomo_sagnac1_20mW_A.csv')
+data = pd.read_csv('./tomography_data.csv')
 
 counts = data.loc[:, 'TT':'RR']
 
 #Step 1.) convert matrix to columns
-M = np.array(counts)
+matrix = np.array(counts)
 # Define the mapping
 basis_map = {
     'Z': {'T': 'H', 'R': 'V'},
@@ -85,7 +86,7 @@ for i, basis in enumerate(basis_labels):
         mapped_label = ''.join([basis_map[b][d] for b, d in zip(basis, detector)])
 
         # Append to new measurements list
-        new_measurements.append((mapped_label, M[i, j]))
+        new_measurements.append((mapped_label, matrix[i, j]))
 
 # Updated to include 4 qubit combinations
 
@@ -112,7 +113,7 @@ def barplot3d(rho, title, dpi=100):
     dy = np.zeros(16) + 0.5
     dz = rho.reshape(16)
 
-    cmap = cm.get_cmap('inferno')
+    cmap = plt.get_cmap('inferno')
     max_height = np.max(dz)
     min_height = np.min(dz)
     rgba = [cmap((k - min_height) / max_height) for k in dz]

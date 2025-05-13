@@ -21,10 +21,10 @@ class TomographyController:
     BASIS_ANGLES = {
         'H': (0, 0),
         'V': (0, 45),
-        'D': (0, 22.5),
-        'A': (0, 67.5),
-        'R': (45, 0),
-        'L': (45, 45),
+        'D': (45, 22.5),
+        'A': (45, -22.5),
+        'R': (45, 45),
+        'L': (45, 0),
     }
 
     def __init__(self, name, quarter_waveplate, half_waveplate):
