@@ -126,6 +126,11 @@ def run_and_analyze_tomo(wp, nominal_state, target_density_matrix):
             print("Error moving linear stage to dip position. Please check the stage.")
 
         try:
+            linear_stage.closeDevice()
+        except:
+            print("Error closing linear stage. Please check the stage.")
+            
+        try:
             st.closeDevice('Axis1')
             st.closeDevice('Axis2')
             st.closeDevice('Axis3')
@@ -135,8 +140,8 @@ def run_and_analyze_tomo(wp, nominal_state, target_density_matrix):
             st.closeDevice('Axis7')
             st.closeDevice('Axis8')
         except:
-            print("Error closing linear stage devices. Please check the devices.")
-        
+            print("Error closing waveplates. Please check the devices.")
+
         try:
             pool.close()
         except:

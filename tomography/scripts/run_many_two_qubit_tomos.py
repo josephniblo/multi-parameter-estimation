@@ -5,24 +5,30 @@ import state_preparation
 import qutip as qt
 
 states = [
+    # {
+    #     "name": "VV",
+    #     "alpha_1": 0,
+    #     "beta_1": 1,
+    #     "alpha_2": 0,
+    #     "beta_2": 1
+    # },
     {
-        "name": "DH",
+        "name": "DD",
         "alpha_1": 1/np.sqrt(2),
         "beta_1": 1/np.sqrt(2),
-        "alpha_2": 1,
-        "beta_2": 0
-    }
+        "alpha_2": 1/np.sqrt(2),
+        "beta_2": 1/np.sqrt(2)
+    },
+    {
+        "name": "RR",
+        "alpha_1": 1/np.sqrt(2),
+        "beta_1": 1j/np.sqrt(2),
+        "alpha_2": 1/np.sqrt(2),
+        "beta_2": 1j/np.sqrt(2)
+    },
 ]
 
 wp = load_waveplates_from_config('waveplates.json')
-
-# Prepare the ttag buffer
-if getfreebuffer() == 0:
-    buf = TTBuffer(0)
-else:
-    buf = TTBuffer(getfreebuffer() - 1)
-if buf.getrunners() == 0:
-    buf.start()
 
 for state in states:
     alpha_1 = state["alpha_1"]
