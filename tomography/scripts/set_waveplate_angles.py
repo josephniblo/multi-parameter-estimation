@@ -69,6 +69,25 @@ def load_waveplates_from_config(filepath) -> dict:
 
     return waveplates_dict
 
+def set_waveplate_angles(waveplates_dict, angles):
+    """
+    Set the angles of the waveplates.
+    Args:
+        waveplates_dict (dict): Dictionary of waveplate controllers.
+        angles (dict): Dictionary of angles to set for each waveplate.
+    """
+    # spawn a thread for each waveplate
+    with ThreadPoolExecutor() as executor:
+        for name, angle in angles.items():
+            if name in waveplates_dict:
+                executor.submit(waveplates_dict[name].set_angle, angle)
+            else:
+                print(f"Waveplate {name} not found in the configuration.")
+
+        # wait for all threads to finish
+        executor.shutdown(wait=True)
+        print("All waveplates set to their respective angles.")
+    
 
 if __name__ == "__main__":
     import code
