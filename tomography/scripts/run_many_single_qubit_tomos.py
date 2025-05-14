@@ -34,9 +34,9 @@ states = [
 
 wp = load_waveplates_from_config('waveplates.json')
 # Set up the waveplates
-for launcher_label in ['a', 'b']:
+for launcher_label in ['A', 'B']:
     # Wait for user to block the other, non specified launcher
-    print(f"BLOCK THE OTHER LAUNCHER ({'a' if launcher_label == 'b' else 'b'}) AND PRESS ENTER TO CONTINUE")
+    print(f"BLOCK LAUNCHER ({'a' if launcher_label == 'b' else 'b'}) AND PRESS ENTER TO CONTINUE")
     input()
 
     for state in states:
