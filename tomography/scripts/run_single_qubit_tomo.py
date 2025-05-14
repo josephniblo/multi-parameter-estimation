@@ -33,7 +33,6 @@ V = qt.basis(2, 1)  # |V>
 # File naming
 SAGNAC = "2"
 POWER = "40mW"
-LAUNCHER = "A" # A or B
 
 # Detector settings
 MEASUREMENT_TIME = 1  # seconds
@@ -46,7 +45,7 @@ DETECTOR_MAPPINGS = {
     'RR': 2 
 }
 
-def run_and_analyze_tomo(wp, nominal_state, target_density_matrix):
+def run_and_analyze_tomo(wp, nominal_state, target_density_matrix, launcher):
     repo_root = os.popen('git rev-parse --show-toplevel').read().strip()
     data_path = os.path.join(repo_root, 'tomography', 'data')
 
@@ -110,7 +109,7 @@ def run_and_analyze_tomo(wp, nominal_state, target_density_matrix):
         try:
             end_time = datetime.now().strftime("%F--%Hh-%Mm")
 
-            data_file_directory = os.path.join(data_path, f"{start_time}--{end_time}_1qb_tomo_sagnac{SAGNAC}_{POWER}_{LAUNCHER}_nominally_{nominal_state}")
+            data_file_directory = os.path.join(data_path, f"{start_time}--{end_time}_1qb_tomo_sagnac{SAGNAC}_{POWER}_{launcher}_nominally_{nominal_state}")
             os.makedirs(data_file_directory, exist_ok=True)
 
             data_file_path = os.path.join(data_file_directory, 'tomography_data.csv')
@@ -151,6 +150,7 @@ if __name__ == "__main__":
     # Options
     #----------------#
     NOMINAL_STATE = "H"
+    LAUNCHER = "A" # 'A' or 'B'
     alpha_1 = 1
     beta_1 = 0
 
@@ -159,4 +159,4 @@ if __name__ == "__main__":
 
     wp = load_waveplates_from_config('waveplates.json')
 
-    run_and_analyze_tomo(wp, NOMINAL_STATE, target_density_matrix)
+    run_and_analyze_tomo(wp, NOMINAL_STATE, target_density_matrix, LAUNCHER)

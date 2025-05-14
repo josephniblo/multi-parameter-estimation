@@ -189,7 +189,7 @@ def plot_density_matrix_from_tomo_data(data_directory, target_density_matrix, tr
 
     # Prepare basis labels
     basis_labels = ['Z', 'X', 'Y']
-    detector_labels = [transmitted_col, reflected_col]
+    detector_labels = ['T', 'R']
 
     new_measurements = []
 
@@ -251,8 +251,8 @@ if __name__ == "__main__":
     print("    Purity (Transmitted):", purity)
 
     # Reflected arm
-    reflected_col = 'RT'
-    transmitted_col = 'RR'
+    transmitted_col = 'RT'
+    reflected_col = 'RR'
     arm_name = 'R'
 
     rho, projs, fidelity, purity = plot_density_matrix_from_tomo_data(data_directory, target_density_matrix, transmitted_col, reflected_col, arm_name)
