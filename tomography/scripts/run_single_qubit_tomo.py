@@ -25,7 +25,7 @@ if buf.getrunners() == 0:
     buf.start()
 
 # Constants
-MEASUREMENT_BASES = ['H','D','R']
+MEASUREMENT_BASES = ['H','D','R', 'V','A','L']
 
 H = qt.basis(2, 0)  # |H>
 V = qt.basis(2, 1)  # |V>
@@ -133,8 +133,8 @@ def run_and_analyze_tomo(wp, nominal_state, target_density_matrix, launcher):
     print("    Purity (Transmitted):", purity)
 
     # Reflected arm
-    reflected_col = 'RT'
-    transmitted_col = 'RR'
+    transmitted_col = 'RT'
+    reflected_col = 'RR'
     arm_name = 'R'
 
     rho, projs, fidelity, purity = plot_density_matrix_from_tomo_data(data_file_directory, target_density_matrix, transmitted_col, reflected_col, arm_name)

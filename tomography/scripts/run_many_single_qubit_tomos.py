@@ -5,11 +5,16 @@ import state_preparation
 import qutip as qt
 
 states = [
-    # {
-    #     "name": "V",
-    #     "alpha": 0,
-    #     "beta": 1
-    # },
+    {
+        "name": "H",
+        "alpha": 1,
+        "beta": 0
+    },
+    {
+        "name": "V",
+        "alpha": 0,
+        "beta": 1
+    },
     {
         "name": "D",
         "alpha": 1/np.sqrt(2),
@@ -59,7 +64,7 @@ for launcher_label in ['A', 'B']:
         psi_qwp = np.degrees(psi_qwp_rad)
 
 
-        wp[f'hl{launcher_label}'].set_angle(psi_hwp)
-        wp[f'ql{launcher_label}'].set_angle(psi_qwp)
+        wp[f'hl{launcher_label.lower()}'].set_angle(psi_hwp)
+        wp[f'ql{launcher_label.lower()}'].set_angle(psi_qwp)
         
         run_and_analyze_tomo(wp, state["name"], target_density_matrix, launcher_label)
