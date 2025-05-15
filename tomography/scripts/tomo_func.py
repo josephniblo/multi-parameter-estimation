@@ -220,8 +220,13 @@ def fid(target, recon):
     ''' fid(target, recon) returns fidelity of a reconstructed density
     operator 'recon' to a target operator 'target' '''
 
+    print("target", target)
+    print("recon", recon)
+
     # matrix sqrt of target state
     sqtar = linalg.sqrtm(target)
+
+    print("sqtar", sqtar)
 
     # intermediate
     inter = sqtar @ recon @ sqtar
