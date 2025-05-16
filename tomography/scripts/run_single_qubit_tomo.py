@@ -73,8 +73,11 @@ def run_and_analyze_tomo(wp, nominal_state, target_density_matrix, launcher):
         for measurement_basis in MEASUREMENT_BASES:
             print(f"Setting measurement basis to {measurement_basis}")
            
-            tomo_t.set_label(measurement_basis)
-            tomo_r.set_label(measurement_basis)
+            # Set the waveplate angles for the measurement basis
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                executor.submit(tomo_t.set_label, measurement_basis)
+                executor.submit(tomo_r.set_label, measurement_basis)
+                
             time.sleep(2) # wait for waveplates to move
 
             time.sleep(1 + MEASUREMENT_TIME)

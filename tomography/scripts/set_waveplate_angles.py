@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 import json
 from move_plates import *
 
@@ -40,8 +41,9 @@ class TomographyController:
             raise ValueError(f"Invalid label: {label}. Valid labels are: {list(self.BASIS_ANGLES.keys())}")
 
         qwp_angle, hwp_angle = self.BASIS_ANGLES[label]
-        self.quarter_waveplate.set_angle(qwp_angle)
-        self.half_waveplate.set_angle(hwp_angle)
+        with ThreadPoolExecutor() as executor:
+            executor.submit(self.quarter_waveplate.set_angle, qwp_angle)
+            executor.submit(self.half_waveplate.set_angle, hwp_angle)
         print(f"{self.name} set to label {label}: QWP angle {qwp_angle}, HWP angle {hwp_angle}")
         
 
@@ -69,18 +71,18 @@ def load_waveplates_from_config(filepath) -> dict:
 
     return waveplates_dict
 
-def set_waveplate_angles(waveplates_dict, angles):
+def set_waveplate_angles(waveplates, angles):
     """
     Set the angles of the waveplates.
     Args:
-        waveplates_dict (dict): Dictionary of waveplate controllers.
+        waveplates (dict): Dictionary of waveplate controllers.
         angles (dict): Dictionary of angles to set for each waveplate.
     """
     # spawn a thread for each waveplate
     with ThreadPoolExecutor() as executor:
         for name, angle in angles.items():
-            if name in waveplates_dict:
-                executor.submit(waveplates_dict[name].set_angle, angle)
+            if name in waveplates:
+                executor.submit(waveplates[name].set_angle, angle)
             else:
                 print(f"Waveplate {name} not found in the configuration.")
 
@@ -88,6 +90,25 @@ def set_waveplate_angles(waveplates_dict, angles):
         executor.shutdown(wait=True)
         print("All waveplates set to their respective angles.")
     
+def set_tomo_labels(tomos, labels):
+    """
+    Set the angles of the waveplates based on the provided labels.
+    Args:
+        tomos (dict): Dictionary of tomography controllers.
+        labels (dict): Dictionary of labels to set for each tomography controller.
+    """
+    # spawn a thread for each tomography controller
+    with ThreadPoolExecutor() as executor:
+        for name, label in labels.items():
+            if name in tomos:
+                executor.submit(tomos[name].set_label, label)
+            else:
+                print(f"Tomography controller {name} not found in the configuration.")
+
+        # wait for all threads to finish
+        executor.shutdown(wait=True)
+        print("All tomography controllers set to their respective labels.")
+
 
 if __name__ == "__main__":
     import code
