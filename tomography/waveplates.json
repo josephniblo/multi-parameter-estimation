@@ -8,7 +8,7 @@
         "type": "hwp"
     },
     "hlb": {
-        "fast_axis": 48.17,
+        "fast_axis": 138.17,
         "type": "hwp"
     },
     "hla": {
@@ -24,7 +24,7 @@
         "type": "qwp"
     },
     "qla": {
-        "fast_axis": 45.36,
+        "fast_axis": 135.36,
         "type": "qwp"
     },
     "qlb": {

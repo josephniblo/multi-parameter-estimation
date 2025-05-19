@@ -25,7 +25,7 @@ if buf.getrunners() == 0:
     buf.start()
 
 # Constants
-MEASUREMENT_BASES = ['H','D','R', 'V','A','L']
+MEASUREMENT_BASES = ['H', 'D', 'R'] # full bases: ['H','D','R', 'V','A','L']
 
 H = qt.basis(2, 0)  # |H>
 V = qt.basis(2, 1)  # |V>

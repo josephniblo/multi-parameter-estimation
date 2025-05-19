@@ -13,9 +13,7 @@ states = [
     {
         "name": "D",
         "alpha": 1/np.sqrt(2),
-        "beta": 1/np.sqrt(2),
-        "hwp": 22.5,
-        "qwp": 45
+        "beta": 1/np.sqrt(2)
     },    
     {
         "name": "V",
@@ -25,9 +23,7 @@ states = [
     {
         "name": "R",
         "alpha": 1/np.sqrt(2),
-        "beta": 1j/np.sqrt(2),
-        "hwp": 0,
-        "qwp": 45
+        "beta": 1j/np.sqrt(2)
     },
     {
         "name": "A",
@@ -39,9 +35,7 @@ states = [
     {
         "name": "L",
         "alpha": 1/np.sqrt(2),
-        "beta": -1j/np.sqrt(2),
-        "hwp": 45,
-        "qwp": 45
+        "beta": -1j/np.sqrt(2)
     }
 ]
 
@@ -53,8 +47,24 @@ except OSError:
     pass
 
 wp = load_waveplates_from_config('waveplates.json')
+
+def pre_compensate_state(psi: qt.Qobj, launcher_label):
+    """
+    Pre-compensate the state for the specified launcher.
+    Applies the phase from pre_comp.json to the state.
+    """
+    with open('pre_comp.json', 'r') as f:
+        pre_comp = json.load(f)
+    
+    pre_comp_phase = pre_comp[launcher_label]
+    pre_comp_phase = np.deg2rad(pre_comp_phase)
+    
+    compensation_matrix = (1j * pre_comp_phase / 2 * qt.sigmaz()).expm()
+
+    return compensation_matrix * psi
+
 # Set up the waveplates
-for launcher_label in ['B','A']:
+for launcher_label in ['B', 'A']:
     # Wait for user to block the other, non specified launcher
     print(f"BLOCK LAUNCHER ({'A' if launcher_label == 'B' else 'B'}) AND PRESS ENTER TO CONTINUE")
     input()
@@ -65,14 +75,15 @@ for launcher_label in ['B','A']:
 
         psi = alpha * H + beta * V
 
-        target_pure_state = psi
+        target_pure_state = pre_compensate_state(psi, launcher_label)
+        print(f"Target Pure State (pre-compensated):\n{target_pure_state}")
         target_density_matrix = qt.ket2dm(target_pure_state).full()
 
         print(f"Running tomography for state: {state['name']}")
         print(f"Target Pure State:\n{target_pure_state}")
 
         # State Preparation
-        psi_hwp_rad, psi_qwp_rad = state_preparation.waveplates.get_hwp_qwp_from_target_state(psi)
+        psi_hwp_rad, psi_qwp_rad = state_preparation.waveplates.get_hwp_qwp_from_target_state(target_pure_state)
 
         # Convert angles to degrees
         psi_hwp = np.degrees(psi_hwp_rad)
@@ -86,10 +97,10 @@ for launcher_label in ['B','A']:
         set_waveplate_angles(wp, {
             f'hl{launcher_label.lower()}': psi_hwp,
             f'ql{launcher_label.lower()}': psi_qwp,
-            f'hr{launcher_label.lower()}': 0,
-            f'qr{launcher_label.lower()}': 0,
-            f'ht{launcher_label.lower()}': 0,
-            f'qt{launcher_label.lower()}': 0
+            f'hr': 0,
+            f'qr': 0,
+            f'ht': 0,
+            f'qt': 0
         })
-        
+
         run_and_analyze_tomo(wp, state["name"], target_density_matrix, launcher_label)

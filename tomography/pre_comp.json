@@ -1,13 +1,4 @@
 {
-    "launchers": [
-        {
-            "name": "A",
-            "phase_compensation_angle": 0
-        },
-        {
-            "name": "B",
-            "phase_compensation_angle": 0
-        }
-    ]
-
+    "A": 14.2,
+    "B": 191.5
 }
