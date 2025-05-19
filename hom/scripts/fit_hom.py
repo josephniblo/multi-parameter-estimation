@@ -115,6 +115,31 @@ class FitHOM:
         return (-1 * ampl * np.exp(-((x - xpos) ** 2) / (2.0 * sigm**2))) + (slope * x + yint)
 
 
+def fit_from_file(file_name, output_dir):
+    df = pd.read_csv(file_name)
+
+    # Extract position and coincidences columns
+    try:
+        position = df["position"].to_numpy()
+    except KeyError:
+        raise KeyError("The CSV file must contain a 'position' column")
+
+    valid_columns = [col for col in COINCIDENCES_COLUMNS if col in df.columns]
+
+    if not valid_columns:
+        raise ValueError("No valid coincidences columns found in the CSV file")
+
+    coincidences = df[valid_columns].sum(axis=1).to_numpy()
+
+    # Get the fit results
+    fit_results = FitHOM().fit_and_plot(position, coincidences, output_dir)
+    
+    print("-" * 40)
+    for fit_type, result in fit_results.items():
+        print(result)
+        print("-" * 40)  # Separator for readability
+
+
 if __name__ == "__main__":
     # Use argparse to handle command-line arguments
     parser = argparse.ArgumentParser(description="Fit and plot data from a CSV file.")
@@ -141,25 +166,4 @@ if __name__ == "__main__":
     base_name = os.path.splitext(os.path.basename(file_name))[0]
     output_dir = os.path.join(os.path.dirname(file_name), "../plots", base_name)
 
-    df = pd.read_csv(file_name)
-
-    # Extract position and coincidences columns
-    try:
-        position = df["position"].to_numpy()
-    except KeyError:
-        raise KeyError("The CSV file must contain a 'position' column")
-
-    valid_columns = [col for col in COINCIDENCES_COLUMNS if col in df.columns]
-
-    if not valid_columns:
-        raise ValueError("No valid coincidences columns found in the CSV file")
-
-    coincidences = df[valid_columns].sum(axis=1).to_numpy()
-
-    # Get the fit results
-    fit_results = FitHOM().fit_and_plot(position, coincidences, output_dir)
-    
-    print("-" * 40)
-    for fit_type, result in fit_results.items():
-        print(result)
-        print("-" * 40)  # Separator for readability
+    fit_from_file(file_name, output_dir)

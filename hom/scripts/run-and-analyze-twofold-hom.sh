@@ -22,7 +22,7 @@ POWER="$2"
 SUBFOLDER="$3"
 
 # Execute the Python script
-pipenv run python ./scripts/run-twofold-hom.py "$TEMPERATURE" "$POWER"
+pipenv run python ./scripts/run_twofold_hom.py "$TEMPERATURE" "$POWER"
 
 # Get the filename of the output file,
 # which is the last file in ./data
