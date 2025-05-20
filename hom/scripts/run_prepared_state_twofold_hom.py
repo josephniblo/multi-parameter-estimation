@@ -136,7 +136,7 @@ for state in states:
     # Analyse the twofold hom
     fit_hom.fit_from_file(
         file_name=data_file,
-        output_dir=os.path.join(repo_root, 'plots', 'state-preparation', start_time, state['name']),
+        output_dir=os.path.join(repo_root, 'hom', 'plots', 'state-preparation', start_time, state['name']),
     )
 
     # Move all the files to the correct directory
