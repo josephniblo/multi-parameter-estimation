@@ -16,31 +16,37 @@ V = qt.basis(2, 1)  # |V>
 states = [
     {
         "name": "H",
+        "tomo_basis": "V",
         "alpha": 1,
         "beta": 0
     },
     {
         "name": "D",
+        "tomo_basis": "A",
         "alpha": 1/np.sqrt(2),
         "beta": 1/np.sqrt(2)
     },    
     {
         "name": "V",
+        "tomo_basis": "H",
         "alpha": 0,
         "beta": 1
     },
     {
         "name": "R",
+        "tomo_basis": "L",
         "alpha": 1/np.sqrt(2),
         "beta": 1j/np.sqrt(2)
     },
     {
         "name": "A",
+        "tomo_basis": "R",
         "alpha": 1/np.sqrt(2),
         "beta": -1/np.sqrt(2)
     },
     {
         "name": "L",
+        "tomo_basis": "A",
         "alpha": 1/np.sqrt(2),
         "beta": -1j/np.sqrt(2)
     }
@@ -102,8 +108,8 @@ for state in states:
     
     # Set the tomos to the state preparation basis (to ensure we have phase sensitivity)
     with ThreadPoolExecutor() as executor:
-        executor.submit(tomo_t.set_label, state["name"])
-        executor.submit(tomo_r.set_label, state["name"])
+        executor.submit(tomo_t.set_label, state["tomo_basis"])
+        executor.submit(tomo_r.set_label, state["tomo_basis"])
     
     # Save the state parameters to a json file
     with open('state_parameters.json', 'w') as f:
