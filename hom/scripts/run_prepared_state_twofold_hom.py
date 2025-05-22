@@ -5,8 +5,8 @@ import fit_hom
 import state_preparation.waveplates
 import qutip as qt
 
-TEMPERATURE = "42C"
-POWER = 51
+TEMPERATURE = "46C"
+POWER = 10
 
 repo_root = os.popen('git rev-parse --show-toplevel').read().strip()
 
@@ -16,40 +16,40 @@ V = qt.basis(2, 1)  # |V>
 states = [
     {
         "name": "H",
-        "tomo_basis": "V",
+        "tomo_basis": "H",
         "alpha": 1,
         "beta": 0
     },
-    {
-        "name": "D",
-        "tomo_basis": "A",
-        "alpha": 1/np.sqrt(2),
-        "beta": 1/np.sqrt(2)
-    },    
-    {
-        "name": "V",
-        "tomo_basis": "H",
-        "alpha": 0,
-        "beta": 1
-    },
-    {
-        "name": "R",
-        "tomo_basis": "L",
-        "alpha": 1/np.sqrt(2),
-        "beta": 1j/np.sqrt(2)
-    },
-    {
-        "name": "A",
-        "tomo_basis": "R",
-        "alpha": 1/np.sqrt(2),
-        "beta": -1/np.sqrt(2)
-    },
-    {
-        "name": "L",
-        "tomo_basis": "A",
-        "alpha": 1/np.sqrt(2),
-        "beta": -1j/np.sqrt(2)
-    }
+    # {
+    #     "name": "D",
+    #     "tomo_basis": "D",
+    #     "alpha": 1/np.sqrt(2),
+    #     "beta": 1/np.sqrt(2)
+    # },    
+    # {
+    #     "name": "V",
+    #     "tomo_basis": "V",
+    #     "alpha": 0,
+    #     "beta": 1
+    # },
+    # {
+    #     "name": "R",
+    #     "tomo_basis": "R",
+    #     "alpha": 1/np.sqrt(2),
+    #     "beta": 1j/np.sqrt(2)
+    # },
+    # {
+    #     "name": "A",
+    #     "tomo_basis": "A",
+    #     "alpha": 1/np.sqrt(2),
+    #     "beta": -1/np.sqrt(2)
+    # },
+    # {
+    #     "name": "L",
+    #     "tomo_basis": "L",
+    #     "alpha": 1/np.sqrt(2),
+    #     "beta": -1j/np.sqrt(2)
+    # }
 ]
 
 wp = load_waveplates_from_config('waveplates.json')
