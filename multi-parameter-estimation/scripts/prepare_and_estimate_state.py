@@ -56,10 +56,11 @@ V = qt.basis(2, 1)  # |V>
 
 
 # Define the states to be prepared
-theta_range = np.linspace(0, np.pi, 60)
+# theta_range = np.linspace(0, np.pi, 60)
+delta_phi_range = np.linspace(-np.pi / 2, 0, 60)
 states = [
-    {"theta": theta, "delta_phi": 0}
-    for theta in theta_range
+    {"theta": np.pi/2, "delta_phi": delta_phi}
+    for delta_phi in delta_phi_range
 ]
 
 wp = load_waveplates_from_config("waveplates.json")
