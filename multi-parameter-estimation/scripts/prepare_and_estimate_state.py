@@ -54,13 +54,13 @@ repo_root = os.popen("git rev-parse --show-toplevel").read().strip()
 H = qt.basis(2, 0)  # |H>
 V = qt.basis(2, 1)  # |V>
 
-theta = np.pi / 2
-delta_a = 0
-delta_b = 0
 
 # Define the states to be prepared
-alpha_a_ket = np.cos(theta / 2) * H + np.sin(theta / 2) * np.exp(1j * delta_a) * V
-alpha_b_ket = np.cos(theta / 2) * H + np.sin(theta / 2) * np.exp(1j * delta_b) * V
+theta_range = np.linspace(0, np.pi, 60)
+states = [
+    {"theta": theta, "delta_phi": 0}
+    for theta in theta_range
+]
 
 wp = load_waveplates_from_config("waveplates.json")
 
@@ -89,34 +89,6 @@ def pre_compensate_state(psi: qt.Qobj, launcher_label):
 
     return compensation_matrix * psi
 
-
-start_time = datetime.datetime.now().strftime("%F--%Hh-%Mm")
-
-target_pure_state_a = pre_compensate_state(alpha_a_ket, "A")
-target_pure_state_b = pre_compensate_state(alpha_b_ket, "B")
-
-psi_hwp_rad_a, psi_qwp_rad_a = (
-    state_preparation.waveplates.get_hwp_qwp_from_target_state(target_pure_state_a)
-)
-psi_hwp_rad_b, psi_qwp_rad_b = (
-    state_preparation.waveplates.get_hwp_qwp_from_target_state(target_pure_state_b)
-)
-
-psi_hwp_a = np.degrees(psi_hwp_rad_a)
-psi_qwp_a = np.degrees(psi_qwp_rad_a)
-psi_hwp_b = np.degrees(psi_hwp_rad_b)
-psi_qwp_b = np.degrees(psi_qwp_rad_b)
-
-set_waveplate_angles(
-    wp,
-    {
-        f"hla": psi_hwp_a,
-        f"hlb": psi_hwp_b,
-        f"qla": psi_qwp_a,
-        f"qlb": psi_qwp_b,
-    },
-)
-
 # Get coincidences across the 8 detectors
 MEASUREMENT_TIME = 1
 COINCIDENCE_WINDOW = 1.0e-9
@@ -129,61 +101,112 @@ else:
 if buf.getrunners() == 0:
     buf.start()
 
-# UNORDERED pairs of detectors
-coincidence_pairs = pd.DataFrame(
-    [
-        (
-            i,
-            j,
-            DETECTORS[i]["arm"],
-            DETECTORS[j]["arm"],
-            DETECTORS[i]["color"],
-            DETECTORS[j]["color"],
-            delays[delays["det_name"] == i]["det_delay"].values[0],
-            delays[delays["det_name"] == j]["det_delay"].values[0],
-            get_estimation_label(DETECTORS[i]["arm"], DETECTORS[j]["arm"]),
-        )
-        for i in DETECTORS.keys()
-        for j in DETECTORS.keys()
-        if i < j
-    ],
-    columns=[
-        "detector_a_name",
-        "detector_b_name",
-        "arm_a",
-        "arm_b",
-        "color_a",
-        "color_b",
-        "delay_a",
-        "delay_b",
-        "estimation_label",
-    ],
-)
+for i, state in enumerate(states):
+    start_time = datetime.datetime.now().strftime("%F--%Hh-%Mm-%Ss")
 
-time.sleep(MEASUREMENT_TIME + 1)
-
-pool = mp.Pool(len(coincidence_pairs))
-
-try:
-    coincidences = pool.map(
-        lambda i: buf.multicoincidences(
-            MEASUREMENT_TIME,
-            COINCIDENCE_WINDOW,
-            [coincidence_pairs["detector_a_name"][i] - 1, coincidence_pairs["detector_b_name"][i] - 1],
-            [coincidence_pairs["delay_a"][i], coincidence_pairs["delay_b"][i]],
-        ),
-        range(len(coincidence_pairs)),
+    alpha_a_ket = (
+        np.cos(state["theta"] / 2) * H + np.sin(state["theta"] / 2) * V
+    )
+    alpha_b_ket = (
+        np.cos(state["theta"] / 2) * H + np.exp(1j * (state["delta_phi"] + np.pi)) * np.sin(state["theta"] / 2) * V
     )
 
-    coincidence_pairs["coincidences"] = coincidences
+    target_pure_state_a = pre_compensate_state(alpha_a_ket, "A")
+    target_pure_state_b = pre_compensate_state(alpha_b_ket, "B")
 
-    output_dir = os.path.join(repo_root, "multi-parameter-estimation", "data", start_time)
-    os.makedirs(output_dir, exist_ok=True)
+    psi_hwp_rad_a, psi_qwp_rad_a = (
+        state_preparation.waveplates.get_hwp_qwp_from_target_state(target_pure_state_a)
+    )
+    psi_hwp_rad_b, psi_qwp_rad_b = (
+        state_preparation.waveplates.get_hwp_qwp_from_target_state(target_pure_state_b)
+    )
 
-    output_file = os.path.join(repo_root, "multi-parameter-estimation", 'data', start_time, f"coincidences.csv")
+    psi_hwp_a = np.degrees(psi_hwp_rad_a)
+    psi_qwp_a = np.degrees(psi_qwp_rad_a)
+    psi_hwp_b = np.degrees(psi_hwp_rad_b)
+    psi_qwp_b = np.degrees(psi_qwp_rad_b)
 
-    coincidence_pairs.to_csv(output_file, index=False)
+    set_waveplate_angles(
+        wp,
+        {
+            f"hla": psi_hwp_a,
+            f"hlb": psi_hwp_b,
+            f"qla": psi_qwp_a,
+            f"qlb": psi_qwp_b,
+        },
+    )
 
-finally:
-    pool.close()
+    # UNORDERED pairs of detectors
+    coincidence_pairs = pd.DataFrame(
+        [
+            (
+                i,
+                j,
+                DETECTORS[i]["arm"],
+                DETECTORS[j]["arm"],
+                DETECTORS[i]["color"],
+                DETECTORS[j]["color"],
+                delays[delays["det_name"] == i]["det_delay"].values[0],
+                delays[delays["det_name"] == j]["det_delay"].values[0],
+                get_estimation_label(DETECTORS[i]["arm"], DETECTORS[j]["arm"]),
+            )
+            for i in DETECTORS.keys()
+            for j in DETECTORS.keys()
+            if i < j
+        ],
+        columns=[
+            "detector_a_name",
+            "detector_b_name",
+            "arm_a",
+            "arm_b",
+            "color_a",
+            "color_b",
+            "delay_a",
+            "delay_b",
+            "estimation_label",
+        ],
+    )
+
+    time.sleep(MEASUREMENT_TIME + 1)
+
+    pool = mp.Pool(len(coincidence_pairs))
+
+    try:
+        coincidences = pool.map(
+            lambda i: buf.multicoincidences(
+                MEASUREMENT_TIME,
+                COINCIDENCE_WINDOW,
+                [coincidence_pairs["detector_a_name"][i] - 1, coincidence_pairs["detector_b_name"][i] - 1],
+                [coincidence_pairs["delay_a"][i], coincidence_pairs["delay_b"][i]],
+            ),
+            range(len(coincidence_pairs)),
+        )
+
+        coincidence_pairs["coincidences"] = coincidences
+
+        output_dir = os.path.join(repo_root, "multi-parameter-estimation", "data", start_time)
+        os.makedirs(output_dir, exist_ok=True)
+
+        output_file = os.path.join(repo_root, "multi-parameter-estimation", 'data', start_time, f"coincidences.csv")
+
+        # save the parameters to a CSV file
+        params_file = os.path.join(repo_root, "multi-parameter-estimation", 'data', start_time, f"params.csv")
+        params_df = pd.DataFrame(
+            {
+                "theta": state["theta"],
+                "delta_phi": state["delta_phi"],
+                "psi_hwp_a": psi_hwp_a,
+                "psi_qwp_a": psi_qwp_a,
+                "psi_hwp_b": psi_hwp_b,
+                "psi_qwp_b": psi_qwp_b,
+            },
+            index=[0],
+        )
+        params_df.to_csv(params_file, index=False)
+
+        # save the results to a CSV file
+        coincidence_pairs.to_csv(output_file, index=False)
+
+    finally:
+        pool.close()
 
