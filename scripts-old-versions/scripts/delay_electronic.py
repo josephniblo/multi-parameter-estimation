@@ -17,7 +17,7 @@ if buf.getrunners() == 0:
 
 
 # Options
-detector_names = [12, 4, 2, 10]
+detector_names = [1,2,4,7,9,10,11,12]
 
 
 def estimate_delays_from_buffer(buf, scan_range, step_size, channels, integration_time=1):
@@ -25,7 +25,7 @@ def estimate_delays_from_buffer(buf, scan_range, step_size, channels, integratio
     scan_points = np.arange(scan_range[0],scan_range[1],step_size)
 
     for x in scan_points:
-        cc.append(buf.multicoincidences(integration_time,step_size / 2,channels,[0,x]))
+        cc.append(buf.multicoincidences(integration_time,step_size,channels,[0,x]))
 
     
     delay = scan_points[np.argmax(cc)]
@@ -33,7 +33,7 @@ def estimate_delays_from_buffer(buf, scan_range, step_size, channels, integratio
     if np.average(cc) == 0:
         cc_significance = 0
     else:
-        cc_significance = np.max(cc) / np.average(cc)
+        cc_significance = np.max(cc) # / np.average(cc)
 
     print(f"Max coincidences: {np.max(cc)}, Delay: {delay*1e9:.2f} ns, Significance: {cc_significance:.2f}")
 
