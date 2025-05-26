@@ -25,6 +25,7 @@ DETECTORS = {
     2: {"arm": "RR", "color": "blue"},
 }
 
+
 def get_estimation_label(arm_a, arm_b):
     # Double bunched
     if arm_a == arm_b:
@@ -58,10 +59,7 @@ V = qt.basis(2, 1)  # |V>
 # Define the states to be prepared
 theta_range = np.linspace(0, np.pi, 60)
 # delta_phi_range = np.linspace(0, np.pi / 2, 60)
-states = [
-    {"theta": theta, "delta_phi": 0}
-    for theta in theta_range
-]
+states = [{"theta": theta, "delta_phi": 0} for theta in theta_range]
 
 wp = load_waveplates_from_config("waveplates.json")
 
@@ -90,8 +88,10 @@ def pre_compensate_state(psi: qt.Qobj, launcher_label):
 
     return compensation_matrix * psi
 
+
 # Get coincidences across the 8 detectors
-MEASUREMENT_TIME = 1
+MEASUREMENT_TIME = 0.1e-3
+REPETITIONS = 5000
 COINCIDENCE_WINDOW = 1.0e-9
 
 if getfreebuffer() == 0:
@@ -105,12 +105,11 @@ if buf.getrunners() == 0:
 for i, state in enumerate(states):
     start_time = datetime.datetime.now().strftime("%F--%Hh-%Mm-%Ss")
 
-    alpha_a_ket = (
-        np.cos(state["theta"] / 2) * H + np.sin(state["theta"] / 2) * V
-    )
+    alpha_a_ket = np.cos(state["theta"] / 2) * H + np.sin(state["theta"] / 2) * V
     # Note that in the paper, the delta phi is given as HALF the difference in phase between the two arms
     alpha_b_ket = (
-        np.cos(state["theta"] / 2) * H + np.exp(1j * (2 * state["delta_phi"])) * np.sin(state["theta"] / 2) * V
+        np.cos(state["theta"] / 2) * H
+        + np.exp(1j * (2 * state["delta_phi"])) * np.sin(state["theta"] / 2) * V
     )
 
     target_pure_state_a = pre_compensate_state(alpha_a_ket, "A")
@@ -144,12 +143,6 @@ for i, state in enumerate(states):
             (
                 i,
                 j,
-                DETECTORS[i]["arm"],
-                DETECTORS[j]["arm"],
-                DETECTORS[i]["color"],
-                DETECTORS[j]["color"],
-                delays[delays["det_name"] == i]["det_delay"].values[0],
-                delays[delays["det_name"] == j]["det_delay"].values[0],
                 get_estimation_label(DETECTORS[i]["arm"], DETECTORS[j]["arm"]),
             )
             for i in DETECTORS.keys()
@@ -159,40 +152,89 @@ for i, state in enumerate(states):
         columns=[
             "detector_a_name",
             "detector_b_name",
-            "arm_a",
-            "arm_b",
-            "color_a",
-            "color_b",
-            "delay_a",
-            "delay_b",
             "estimation_label",
         ],
     )
 
-    time.sleep(MEASUREMENT_TIME + 1)
-
     pool = mp.Pool(len(coincidence_pairs))
 
+    all_coincidence_pairs = pd.DataFrame(
+        columns=[
+            "detector_a_name",
+            "detector_b_name",
+            "estimation_label",
+            "repetition",
+            "coincidences",
+        ],
+    )
     try:
-        coincidences = pool.map(
-            lambda i: buf.multicoincidences(
-                MEASUREMENT_TIME,
-                COINCIDENCE_WINDOW,
-                [coincidence_pairs["detector_a_name"][i] - 1, coincidence_pairs["detector_b_name"][i] - 1],
-                [coincidence_pairs["delay_a"][i], coincidence_pairs["delay_b"][i]],
-            ),
-            range(len(coincidence_pairs)),
+        for rep in range(REPETITIONS):
+            rep_coincidence_pairs = coincidence_pairs.copy()
+            rep_coincidence_pairs["repetition"] = rep
+            rep_coincidence_pairs["coincidences"] = None
+            rep_coincidence_pairs["timestamp"] = datetime.datetime.now().strftime(
+                "%F--%Hh-%Mm-%Ss-%f"
+            )
+
+            time.sleep(MEASUREMENT_TIME + 1e-2)
+
+            coincidences = pool.map(
+                lambda i: buf.multicoincidences(
+                    MEASUREMENT_TIME,
+                    COINCIDENCE_WINDOW,
+                    [
+                        coincidence_pairs["detector_a_name"][i] - 1,
+                        coincidence_pairs["detector_b_name"][i] - 1,
+                    ],
+                    [
+                        delays[
+                            delays["det_name"]
+                            == coincidence_pairs["detector_a_name"][i]
+                        ]["det_delay"].values[0],
+                        delays[
+                            delays["det_name"]
+                            == coincidence_pairs["detector_b_name"][i]
+                        ]["det_delay"].values[0],
+                    ],
+                ),
+                range(len(coincidence_pairs)),
+            )
+
+            rep_coincidence_pairs["coincidences"] = coincidences
+
+            all_coincidence_pairs = pd.concat(
+                [all_coincidence_pairs, rep_coincidence_pairs], ignore_index=True
+            )
+
+        # Throw away any repetitions with no coincidences anywhere in the repetition
+        # This keeps the data volumes lower
+        valid_reps = (
+            all_coincidence_pairs.groupby("repetition")["coincidences"]
+            .sum()
+            .loc[lambda x: x > 0]
+            .index
         )
+        all_coincidence_pairs = all_coincidence_pairs[
+            all_coincidence_pairs["repetition"].isin(valid_reps)
+        ].reset_index(drop=True)
 
-        coincidence_pairs["coincidences"] = coincidences
-
-        output_dir = os.path.join(repo_root, "multi-parameter-estimation", "data", start_time)
+        output_dir = os.path.join(
+            repo_root, "multi-parameter-estimation", "data", start_time
+        )
         os.makedirs(output_dir, exist_ok=True)
 
-        output_file = os.path.join(repo_root, "multi-parameter-estimation", 'data', start_time, f"coincidences.csv")
+        output_file = os.path.join(
+            repo_root,
+            "multi-parameter-estimation",
+            "data",
+            start_time,
+            f"coincidences.csv",
+        )
 
         # save the parameters to a CSV file
-        params_file = os.path.join(repo_root, "multi-parameter-estimation", 'data', start_time, f"params.csv")
+        params_file = os.path.join(
+            repo_root, "multi-parameter-estimation", "data", start_time, f"params.csv"
+        )
         params_df = pd.DataFrame(
             {
                 "theta": state["theta"],
@@ -201,14 +243,15 @@ for i, state in enumerate(states):
                 "psi_qwp_a": psi_qwp_a,
                 "psi_hwp_b": psi_hwp_b,
                 "psi_qwp_b": psi_qwp_b,
+                "measurement_time": MEASUREMENT_TIME,
+                "repetitions": REPETITIONS,
             },
             index=[0],
         )
         params_df.to_csv(params_file, index=False)
 
         # save the results to a CSV file
-        coincidence_pairs.to_csv(output_file, index=False)
+        all_coincidence_pairs.to_csv(output_file, index=False)
 
     finally:
         pool.close()
-
