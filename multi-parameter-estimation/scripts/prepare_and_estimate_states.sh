@@ -4,5 +4,8 @@
 set -e
 
 pipenv run python ./scripts/prepare_and_estimate_states.py
-pipenv run papermill ./post-processing/estimate_states.ipynb /dev/null
-pipenv run papermill ./post-processing/analyse_estimates.ipynb /dev/null
+pipenv run papermill ./post-processing/1_sum_and_scale_coincidences.ipynb /dev/null
+pipenv run papermill ./post-processing/2_chunk_to_forties.ipynb /dev/null
+pipenv run papermill ./post-processing/3_create_higher_n_estimates.ipynb /dev/null
+pipenv run papermill ./post-processing/4_estimate_on_chunks.ipynb /dev/null
+pipenv run papermill ./post-processing/5_analyse_estimates.ipynb /dev/null

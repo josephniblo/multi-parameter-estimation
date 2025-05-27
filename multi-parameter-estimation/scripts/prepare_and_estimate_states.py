@@ -57,7 +57,7 @@ V = qt.basis(2, 1)  # |V>
 
 
 # Define the states to be prepared
-theta_range = np.linspace(0, np.pi, 60)
+theta_range = np.linspace(0, np.pi, 10)
 # delta_phi_range = np.linspace(0, np.pi / 2, 60)
 states = [{"theta": theta, "delta_phi": 0} for theta in theta_range]
 

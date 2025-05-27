@@ -12,7 +12,7 @@ def sine_function(x, amplitude, phase, offset, frequency):
 # Fit the sine curve
 def fit_sine_curve(x, y, waveplate_type='hwp'):
     # Initial guesses for amplitude, phase, and offset
-    initial_guess = [np.ptp(y) / 2, np.pi/4, np.mean(y)]
+    initial_guess = [100000, np.pi/4, np.mean(y)]
     params, _ = curve_fit(lambda x, amplitude, phase, offset: sine_function(x, amplitude, phase, offset, 4), 
                           x, y, p0=initial_guess, bounds=(0, [np.inf, np.pi, np.inf]))
 
@@ -96,4 +96,4 @@ def analyse_waveplate_data(waveplate_name, data_dir):
     return singles_params, coincidences_params
 
 if __name__ == "__main__":
-    analyse_waveplate_data('qr', './data/qr/2025-05-09_11-57-49')
+    analyse_waveplate_data('hr', './data/hr/2025-05-27_11-13-26')

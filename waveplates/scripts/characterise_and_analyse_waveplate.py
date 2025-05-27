@@ -57,13 +57,21 @@ if __name__ == "__main__":
 	max_coincidence_angles = [i for i in np.linspace(best_guess_max_coincidence - fine_scan_half_range, best_guess_max_coincidence + fine_scan_half_range, 7)]
 	midpoint_coincidence_angles = [i for i in np.linspace(best_guess_midpoint_coincidence - fine_scan_half_range, best_guess_midpoint_singles + fine_scan_half_range, 5)]
 
-	angles = min_coincidence_angles + max_coincidence_angles + midpoint_coincidence_angles
+	min_singles_angles = [i for i in np.linspace(best_guess_min_singles - fine_scan_half_range, best_guess_min_singles + fine_scan_half_range, 11)]
+	max_singles_angles = [i for i in np.linspace(best_guess_max_singles - fine_scan_half_range, best_guess_max_singles + fine_scan_half_range, 7)]
+	midpoint_singles_angles = [i for i in np.linspace(best_guess_midpoint_singles - fine_scan_half_range, best_guess_midpoint_singles + fine_scan_half_range, 5)]
+
+	# angles = min_coincidence_angles + max_coincidence_angles + midpoint_coincidence_angles
+	angles = min_singles_angles + max_singles_angles + midpoint_singles_angles
 
 	run_characterisation(waveplate_name, singles_detector_name, coincidence_detector_name, angles, waveplate_dir)
 	singles_fit_params, coincidences_fit_params = analyse_waveplate_data(waveplate_name, waveplate_dir)
 
 	best_guess_max_coincidence = (coincidences_fit_params[1] * 180 / np.pi) + 22.5 % 90
 	best_guess_max_coincidence = best_guess_max_coincidence.round(2)
+
+	best_guess_max_singles = (singles_fit_params[1] * 180 / np.pi) + 22.5 % 90
+	best_guess_max_singles = best_guess_max_singles.round(2)
 
 	# update the value in the waveplate.json file
 	waveplate_json_path = os.path.join(repo_root, "waveplates", "waveplates.json")
@@ -73,13 +81,14 @@ if __name__ == "__main__":
 	if waveplate_name not in waveplates:
 		waveplates[waveplate_name] = {}
 
-	waveplates[waveplate_name]['fast_axis'] = best_guess_max_coincidence
+	# waveplates[waveplate_name]['fast_axis'] = best_guess_max_coincidence
+	waveplates[waveplate_name]['fast_axis'] = best_guess_max_singles
 
 	with open(waveplate_json_path, 'w') as f:
 		json.dump(waveplates, f, indent=4)
 
 	# put the waveplate at the fast axis
-	angleMove([best_guess_max_coincidence], [waveplate_name])
+	angleMove([best_guess_max_singles], [waveplate_name])
 
-	print(f"Found fast axis at: {best_guess_max_coincidence}")
+	print(f"Found fast axis at: {best_guess_max_singles}")
 	print("Waveplate moved to fast axis")
