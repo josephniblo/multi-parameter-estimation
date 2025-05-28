@@ -27,38 +27,12 @@ DETECTORS = {
 
 # Get coincidences across the 8 detectors
 MEASUREMENT_TIME = 0.1e-3
-REPETITIONS = 500
+REPETITIONS = 2000
 COINCIDENCE_WINDOW = 1.0e-9
 
-theta_range = np.linspace(0, np.pi, 6)
+theta_range = np.linspace(0, np.pi, 10)
 delta_phi_range = [0] # np.linspace(0, np.pi / 2, 60)
 
-
-def get_estimation_label(arm_a, arm_b, tomography_setting_a, tomography_setting_b):
-    # If the tomog is in V, then the detectors are effectively flipped in that arm
-    if tomography_setting_a == "V":
-        arm_a[1] = "T" if arm_a[1] == "R" else "R"
-    if tomography_setting_b == "V":
-        arm_b[1] = "T" if arm_b[1] == "R" else "R"
-    
-    # Double bunched
-    if arm_a == arm_b:
-        # DB_H
-        if arm_a[1] == "T":
-            return "DB_H"
-        # DB_V
-        elif arm_a[1] == "R":
-            return "DB_V"
-        else:
-            raise ValueError(f"Unknown arm: {arm_a}")
-    # Coincidence
-    elif arm_a[0] != arm_b[0]:
-        return "C"
-    # Single bunched
-    elif arm_a[1] != arm_b[1]:
-        return "SB"
-    else:
-        raise ValueError(f"Unknown arm combination: {arm_a}, {arm_b}")
 
 delays = pd.read_json("detChannels.json").transpose().reset_index()
 delays.columns = ["detector", "det_index", "det_delay", "todo"]
@@ -142,8 +116,7 @@ for i, state in enumerate(states):
         [
             (
                 i,
-                j,
-                get_estimation_label(DETECTORS[i]["arm"], DETECTORS[j]["arm"]),
+                j
             )
             for i in DETECTORS.keys()
             for j in DETECTORS.keys()
@@ -152,7 +125,6 @@ for i, state in enumerate(states):
         columns=[
             "detector_a_name",
             "detector_b_name",
-            "estimation_label",
         ],
     )
 
@@ -162,9 +134,8 @@ for i, state in enumerate(states):
         columns=[
             "detector_a_name",
             "detector_b_name",
-            "estimation_label",
-            "tomography_setting_a",
-            "tomography_setting_b",
+            "tomography_setting_t",
+            "tomography_setting_r",
             "repetition",
             "coincidences",
         ],
