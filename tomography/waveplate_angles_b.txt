@@ -1,12 +1,3 @@
-State: L
-psi_hwp: -2.9249999999999963
-psi_qwp: -45.0
-State: L
-psi_hwp: -2.9249999999999963
-psi_qwp: -45.0
-State: L
-psi_hwp: 2.8749999999999707
-psi_qwp: 45.00000000000001
 State: H
 psi_hwp: 2.81123972899684e-16
 psi_qwp: 5.62247945799368e-16
