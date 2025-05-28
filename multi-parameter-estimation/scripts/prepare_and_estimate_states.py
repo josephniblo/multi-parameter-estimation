@@ -25,8 +25,22 @@ DETECTORS = {
     2: {"arm": "RR", "color": "blue"},
 }
 
+# Get coincidences across the 8 detectors
+MEASUREMENT_TIME = 0.1e-3
+REPETITIONS = 500
+COINCIDENCE_WINDOW = 1.0e-9
 
-def get_estimation_label(arm_a, arm_b):
+theta_range = np.linspace(0, np.pi, 6)
+delta_phi_range = [0] # np.linspace(0, np.pi / 2, 60)
+
+
+def get_estimation_label(arm_a, arm_b, tomography_setting_a, tomography_setting_b):
+    # If the tomog is in V, then the detectors are effectively flipped in that arm
+    if tomography_setting_a == "V":
+        arm_a[1] = "T" if arm_a[1] == "R" else "R"
+    if tomography_setting_b == "V":
+        arm_b[1] = "T" if arm_b[1] == "R" else "R"
+    
     # Double bunched
     if arm_a == arm_b:
         # DB_H
@@ -55,11 +69,7 @@ repo_root = os.popen("git rev-parse --show-toplevel").read().strip()
 H = qt.basis(2, 0)  # |H>
 V = qt.basis(2, 1)  # |V>
 
-
-# Define the states to be prepared
-theta_range = np.linspace(0, np.pi, 10)
-# delta_phi_range = np.linspace(0, np.pi / 2, 60)
-states = [{"theta": theta, "delta_phi": 0} for theta in theta_range]
+states = [{"theta": theta, "delta_phi": delta_phi} for theta in theta_range for delta_phi in delta_phi_range]
 
 wp = load_waveplates_from_config("waveplates.json")
 
@@ -67,11 +77,6 @@ tomo_t = TomographyController("T", quarter_waveplate=wp["qt"], half_waveplate=wp
 tomo_r = TomographyController(
     name="R", quarter_waveplate=wp["qr"], half_waveplate=wp["hr"]
 )
-
-with ThreadPoolExecutor() as executor:
-    executor.submit(tomo_t.set_label, "H")
-    executor.submit(tomo_r.set_label, "H")
-
 
 def pre_compensate_state(psi: qt.Qobj, launcher_label):
     """
@@ -88,11 +93,6 @@ def pre_compensate_state(psi: qt.Qobj, launcher_label):
 
     return compensation_matrix * psi
 
-
-# Get coincidences across the 8 detectors
-MEASUREMENT_TIME = 0.1e-3
-REPETITIONS = 5000
-COINCIDENCE_WINDOW = 1.0e-9
 
 if getfreebuffer() == 0:
     buf = TTBuffer(0)
@@ -163,48 +163,59 @@ for i, state in enumerate(states):
             "detector_a_name",
             "detector_b_name",
             "estimation_label",
+            "tomography_setting_a",
+            "tomography_setting_b",
             "repetition",
             "coincidences",
         ],
     )
     try:
-        for rep in range(REPETITIONS):
-            rep_coincidence_pairs = coincidence_pairs.copy()
-            rep_coincidence_pairs["repetition"] = rep
-            rep_coincidence_pairs["coincidences"] = None
-            rep_coincidence_pairs["timestamp"] = datetime.datetime.now().strftime(
-                "%F--%Hh-%Mm-%Ss-%f"
-            )
+        for tomography_setting in [("H", "H"), ("H", "V"), ("V", "H"), ("V", "V")]:
+            with ThreadPoolExecutor() as executor:
+                executor.submit(tomo_t.set_label, tomography_setting[0])
+                executor.submit(tomo_r.set_label, tomography_setting[1])
+            time.sleep(0.1)
 
-            time.sleep(MEASUREMENT_TIME + 1e-2)
+            for rep in range(round(REPETITIONS / 4)):
+                rep_coincidence_pairs = coincidence_pairs.copy()
+                rep_coincidence_pairs["repetition"] = rep
+                rep_coincidence_pairs["coincidences"] = None
+                rep_coincidence_pairs["timestamp"] = datetime.datetime.now().strftime(
+                    "%F--%Hh-%Mm-%Ss-%f"
+                )
 
-            coincidences = pool.map(
-                lambda i: buf.multicoincidences(
-                    MEASUREMENT_TIME,
-                    COINCIDENCE_WINDOW,
-                    [
-                        coincidence_pairs["detector_a_name"][i] - 1,
-                        coincidence_pairs["detector_b_name"][i] - 1,
-                    ],
-                    [
-                        delays[
-                            delays["det_name"]
-                            == coincidence_pairs["detector_a_name"][i]
-                        ]["det_delay"].values[0],
-                        delays[
-                            delays["det_name"]
-                            == coincidence_pairs["detector_b_name"][i]
-                        ]["det_delay"].values[0],
-                    ],
-                ),
-                range(len(coincidence_pairs)),
-            )
+                time.sleep(MEASUREMENT_TIME + 1e-2)
 
-            rep_coincidence_pairs["coincidences"] = coincidences
+                coincidences = pool.map(
+                    lambda i: buf.multicoincidences(
+                        MEASUREMENT_TIME,
+                        COINCIDENCE_WINDOW,
+                        [
+                            coincidence_pairs["detector_a_name"][i] - 1,
+                            coincidence_pairs["detector_b_name"][i] - 1,
+                        ],
+                        [
+                            delays[
+                                delays["det_name"]
+                                == coincidence_pairs["detector_a_name"][i]
+                            ]["det_delay"].values[0],
+                            delays[
+                                delays["det_name"]
+                                == coincidence_pairs["detector_b_name"][i]
+                            ]["det_delay"].values[0],
+                        ],
+                    ),
+                    range(len(coincidence_pairs)),
+                )
 
-            all_coincidence_pairs = pd.concat(
-                [all_coincidence_pairs, rep_coincidence_pairs], ignore_index=True
-            )
+                rep_coincidence_pairs["coincidences"] = coincidences
+
+                rep_coincidence_pairs["tomography_setting_t"] = tomography_setting[0]
+                rep_coincidence_pairs["tomography_setting_r"] = tomography_setting[1]
+
+                all_coincidence_pairs = pd.concat(
+                    [all_coincidence_pairs, rep_coincidence_pairs], ignore_index=True
+                )
 
         # Throw away any repetitions with no coincidences anywhere in the repetition
         # This keeps the data volumes lower
