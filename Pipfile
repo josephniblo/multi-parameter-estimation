@@ -23,6 +23,7 @@ networkx = {extras = ["default"], version = "*"}
 cvxpy = "*"
 seaborn = "*"
 papermill = "*"
+ortools = "*"
 
 [dev-packages]
 ipykernel = "*"

@@ -26,13 +26,26 @@ DETECTORS = {
 }
 
 # Get coincidences across the 8 detectors
-MEASUREMENT_TIME = 0.1e-3
-REPETITIONS = 2000
+MEASUREMENT_TIME = 1e-3 / 20
+REPETITIONS = 30000
 COINCIDENCE_WINDOW = 1.0e-9
 
-theta_range = np.linspace(0, np.pi, 10)
-delta_phi_range = [0] # np.linspace(0, np.pi / 2, 60)
+sample_range = np.array([0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.375, 0.5, 0.625, 0.75, 0.8, 0.85, 0.9, 0.95, 1])
 
+theta_range = np.pi * sample_range
+theta_states = [{"theta": theta, "delta_phi": 0} for theta in theta_range] + [{"theta": theta, "delta_phi": np.pi / 4} for theta in theta_range] + [{"theta": theta, "delta_phi": np.pi / 2} for theta in theta_range]
+
+delta_phi_range_theta_pi_by_4 = np.pi / 2 * sample_range
+delta_phi_states_theta_pi_by_4 = [{"theta": np.pi/4, "delta_phi": delta_phi} for delta_phi in delta_phi_range_theta_pi_by_4]
+
+delta_phi_range_theta_pi_by_2 = np.pi / 2 * sample_range
+delta_phi_states_theta_pi_by_2 = [{"theta": np.pi/2, "delta_phi": delta_phi} for delta_phi in delta_phi_range_theta_pi_by_2]
+delta_phi_states = (
+    delta_phi_states_theta_pi_by_4 + delta_phi_states_theta_pi_by_2
+)
+
+states = theta_states + delta_phi_states
+print(states)
 
 delays = pd.read_json("detChannels.json").transpose().reset_index()
 delays.columns = ["detector", "det_index", "det_delay", "todo"]
@@ -42,8 +55,6 @@ repo_root = os.popen("git rev-parse --show-toplevel").read().strip()
 
 H = qt.basis(2, 0)  # |H>
 V = qt.basis(2, 1)  # |V>
-
-states = [{"theta": theta, "delta_phi": delta_phi} for theta in theta_range for delta_phi in delta_phi_range]
 
 wp = load_waveplates_from_config("waveplates.json")
 
@@ -141,7 +152,7 @@ for i, state in enumerate(states):
         ],
     )
     try:
-        for tomography_setting in [("H", "H"), ("H", "V"), ("V", "H"), ("V", "V")]:
+        for tomography_setting in [("H", "H"), ("H", "V"), ("V", "V"), ("V", "H")]:
             with ThreadPoolExecutor() as executor:
                 executor.submit(tomo_t.set_label, tomography_setting[0])
                 executor.submit(tomo_r.set_label, tomography_setting[1])
@@ -155,7 +166,7 @@ for i, state in enumerate(states):
                     "%F--%Hh-%Mm-%Ss-%f"
                 )
 
-                time.sleep(MEASUREMENT_TIME + 1e-2)
+                time.sleep(MEASUREMENT_TIME + 0.1e-3)
 
                 coincidences = pool.map(
                     lambda i: buf.multicoincidences(
