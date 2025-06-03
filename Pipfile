@@ -24,6 +24,9 @@ cvxpy = "*"
 seaborn = "*"
 papermill = "*"
 ortools = "*"
+tomtag = "*"
+polars = "*"
+numba = "*"
 
 [dev-packages]
 ipykernel = "*"
