@@ -31,12 +31,13 @@ DETECTORS = {
 }
 
 # Get coincidences across the 8 detectors
-MEASUREMENT_TIME = 5  # 10s
+MEASUREMENT_TIME = 10  # 10s
 COINCIDENCE_WINDOW = 1.0e-9  # 1 ns
 
 sample_range = np.array(
     # [0, 0.2, 0.5, 0.8, 1]
-    [0, 0.04, 0.08, 0.12, 0.16, 0.2, 0.25, 0.375, 0.5, 0.625, 0.75, 0.8, 0.84, 0.88, 0.92, 0.96, 1]
+    # [0, 0.04, 0.08, 0.12, 0.16, 0.2, 0.25, 0.375, 0.5, 0.625, 0.75, 0.8, 0.84, 0.88, 0.92, 0.96, 1]
+    np.linspace(0, 1, 26, endpoint=True)  # 26 points from 0 to 1
 )
 
 theta_range = np.pi * sample_range
