@@ -5,7 +5,7 @@ import fit_hom
 import state_preparation.waveplates
 import qutip as qt
 
-TEMPERATURE = "46C"
+TEMPERATURE = "37.2C"
 POWER = 10
 
 repo_root = os.popen('git rev-parse --show-toplevel').read().strip()

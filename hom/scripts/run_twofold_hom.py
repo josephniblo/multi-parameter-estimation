@@ -24,7 +24,7 @@ STEP_SIZE = 0.4 # mm
 DETAIL_HALF_RANGE = 0.4 # mm
 DETAIL_STEP_SIZE = 0.05 # mm
 
-MEASUREMENT_TIME = 1 # seconds
+MEASUREMENT_TIME = 5 # seconds
 COINCIDENCE_WINDOW = 1.0e-9 # seconds
 
 STANDA_CONFIG_FILE_LOCATION = os.path.abspath("/home/jh115/emqTools/standa/8CMA06-25_15-Lin_G34.cfg")
