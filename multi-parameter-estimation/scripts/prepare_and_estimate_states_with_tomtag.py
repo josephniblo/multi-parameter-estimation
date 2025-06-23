@@ -31,13 +31,16 @@ DETECTORS = {
 }
 
 # Get coincidences across the 8 detectors
-MEASUREMENT_TIME = 10  # 10s
+MEASUREMENT_TIME = 60  # seconds
 COINCIDENCE_WINDOW = 1.0e-9  # 1 ns
+
+POWER = 10 # mW
+TEMPERATEURE = "32.7C" # Of the crystal
 
 sample_range = np.array(
     # [0, 0.2, 0.5, 0.8, 1]
     # [0, 0.04, 0.08, 0.12, 0.16, 0.2, 0.25, 0.375, 0.5, 0.625, 0.75, 0.8, 0.84, 0.88, 0.92, 0.96, 1]
-    np.linspace(0, 1, 13, endpoint=True)  # 26 points from 0 to 1
+    np.linspace(0, 1, 25, endpoint=True)  # 25 points from 0 to 1
 )
 
 theta_range = np.pi * sample_range
@@ -295,6 +298,8 @@ for i, state in enumerate(states):
                 "psi_hwp_b": psi_hwp_b,
                 "psi_qwp_b": psi_qwp_b,
                 "measurement_time": MEASUREMENT_TIME,
+                "power": POWER,
+                "temperature": TEMPERATEURE,
             },
             index=[0],
         )
