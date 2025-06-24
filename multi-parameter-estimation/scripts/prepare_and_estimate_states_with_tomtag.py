@@ -31,7 +31,7 @@ DETECTORS = {
 }
 
 # Get coincidences across the 8 detectors
-MEASUREMENT_TIME = 60  # seconds
+MEASUREMENT_TIME = 90  # seconds
 COINCIDENCE_WINDOW = 1.0e-9  # 1 ns
 
 POWER = 10 # mW

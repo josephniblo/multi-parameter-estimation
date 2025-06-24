@@ -1,0 +1,2 @@
+theta,delta_phi,psi_hwp_a,psi_qwp_a,psi_hwp_b,psi_qwp_b,measurement_time,power,temperature
+3.141592653589793,0.7853981633974483,45.0,90.0,-45.0,-90.0,90,10,32.7C
