@@ -4,40 +4,17 @@ from set_waveplate_angles import *
 import state_preparation
 import qutip as qt
 
+
 states = [
     {
-        "name": "H",
-        "alpha": 1,
-        "beta": 0
-    },
-    {
-        "name": "D",
-        "alpha": 1/np.sqrt(2),
-        "beta": 1/np.sqrt(2)
-    },    
-    {
-        "name": "V",
-        "alpha": 0,
-        "beta": 1
-    },
-    {
-        "name": "R",
-        "alpha": 1/np.sqrt(2),
-        "beta": 1j/np.sqrt(2)
-    },
-    {
-        "name": "A",
-        "alpha": 1/np.sqrt(2),
-        "beta": -1/np.sqrt(2),
-        "hwp": -22.5,
-        "qwp": 45
-    },
-    {
-        "name": "L",
-        "alpha": 1/np.sqrt(2),
-        "beta": -1j/np.sqrt(2)
+        "name": f"theta={theta}deg-phi={phi}deg",
+        "alpha": np.cos(np.deg2rad(theta / 2)),
+        "beta": np.exp(1j * np.deg2rad(phi)) * np.sin(np.deg2rad(theta / 2))
     }
+    for theta in np.linspace(0, 180, 9)
+    for phi in [0, 22.5, 45, 67.5, 90]
 ]
+
 
 # delete the waveplate angles files if they exist
 try:

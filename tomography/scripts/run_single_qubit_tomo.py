@@ -25,17 +25,17 @@ if buf.getrunners() == 0:
     buf.start()
 
 # Constants
-MEASUREMENT_BASES = ['H', 'D', 'R'] # full bases: ['H','D','R', 'V','A','L']
+MEASUREMENT_BASES = ['H','D','R', 'V','A','L'] # full bases: ['H','D','R', 'V','A','L']
 
 H = qt.basis(2, 0)  # |H>
 V = qt.basis(2, 1)  # |V>
 
 # File naming
 SAGNAC = "2"
-POWER = "40mW"
+POWER = "100mW"
 
 # Detector settings
-MEASUREMENT_TIME = 1  # seconds
+MEASUREMENT_TIME = 5  # seconds
 COINCIDENCE_WINDOW = 1.0e-9
 
 DETECTOR_MAPPINGS = {
