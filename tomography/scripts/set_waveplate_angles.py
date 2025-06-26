@@ -76,8 +76,14 @@ def set_waveplate_angles(waveplates, angles):
     Set the angles of the waveplates.
     Args:
         waveplates (dict): Dictionary of waveplate controllers.
-        angles (dict): Dictionary of angles to set for each waveplate.
+        angles (dict or int or float): Dictionary of angles to set for each waveplate,
+                                       or a single value to apply to all.
     """
+    if isinstance(angles, (int, float)):
+        angles = {name: angles for name in waveplates.keys()}
+    elif not isinstance(angles, dict):
+        raise ValueError("Angles must be a dictionary or a single numeric value.")
+
     # spawn a thread for each waveplate
     with ThreadPoolExecutor() as executor:
         for name, angle in angles.items():
@@ -129,4 +135,8 @@ if __name__ == "__main__":
     )
 
     # Launch interactive shell with `wp` in the local namespace
-    code.interact(local={"wp": wp}, banner=banner)
+    code.interact(local={
+        'wp': wp,
+        'set_waveplate_angles': set_waveplate_angles,
+        'set_tomo_labels': set_tomo_labels,
+    }, banner=banner)

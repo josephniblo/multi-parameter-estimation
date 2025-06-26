@@ -11,8 +11,8 @@ states = [
         "alpha": np.cos(np.deg2rad(theta / 2)),
         "beta": np.exp(1j * np.deg2rad(phi)) * np.sin(np.deg2rad(theta / 2))
     }
-    for theta in np.linspace(0, 180, 9)
-    for phi in [0, 22.5, 45, 67.5, 90]
+    for theta in np.linspace(0, 180, 5)
+    for phi in np.array([22.5, 45, 67.5, 90]) + 90
 ]
 
 
