@@ -173,8 +173,8 @@ def quad1QubitS(new_measurements_array):
     return tomodic
 
 # Arm name = 'T' or 'R'
-def plot_density_matrix_from_tomo_data(data_directory, target_density_matrix, transmitted_col, reflected_col, arm_name):
-    file_name = os.path.join(data_directory, 'tomography_data.csv')
+def plot_density_matrix_from_tomo_data(data_directory, target_density_matrix, transmitted_col, reflected_col, arm_name, data_file_name='tomography_data.csv', plot=True):
+    file_name = os.path.join(data_directory, data_file_name)
     data = pd.read_csv(file_name, index_col=0)
     counts = data.loc[:, [transmitted_col, reflected_col]]
 
@@ -207,8 +207,9 @@ def plot_density_matrix_from_tomo_data(data_directory, target_density_matrix, tr
     # ensure the directory exists
     os.makedirs(os.path.join(data_directory, arm_name), exist_ok=True)
     
-    barplot3d(np.real(rho),'Real(rho)', save_path=data_directory + f'/{arm_name}/real_rho.png')
-    barplot3d(np.imag(rho),'Imag(rho)', save_path=data_directory + f'/{arm_name}/imag_rho.png')
+    if plot:
+        barplot3d(np.real(rho),'Real(rho)', save_path=data_directory + f'/{arm_name}/real_rho.png')
+        barplot3d(np.imag(rho),'Imag(rho)', save_path=data_directory + f'/{arm_name}/imag_rho.png')
 
     fidelity = round(fid(target_density_matrix, rho),4)
 

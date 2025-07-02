@@ -5,15 +5,38 @@ import state_preparation
 import qutip as qt
 
 
-states = [
-    {
-        "name": f"theta={theta}deg-phi={phi}deg",
-        "alpha": np.cos(np.deg2rad(theta / 2)),
-        "beta": np.exp(1j * np.deg2rad(phi)) * np.sin(np.deg2rad(theta / 2))
-    }
-    for theta in np.linspace(0, 180, 5)
-    for phi in np.array([22.5, 45, 67.5, 90]) + 90
+sample_range = np.array(
+    np.linspace(0, 1, 7, endpoint=True)  # 25 points from 0 to 1
+)
+
+theta_range = np.pi * sample_range
+theta_states = (
+    [{"theta": theta, "delta_phi": 0} for theta in theta_range]
+    + [{"theta": theta, "delta_phi": np.pi / 4} for theta in theta_range]
+    + [{"theta": theta, "delta_phi": np.pi / 2} for theta in theta_range]
+)
+
+delta_phi_range_theta_pi_by_4 = np.pi / 2 * sample_range
+delta_phi_states_theta_pi_by_4 = [
+    {"theta": np.pi / 4, "delta_phi": delta_phi}
+    for delta_phi in delta_phi_range_theta_pi_by_4
 ]
+
+
+delta_phi_range_theta_pi_by_2 = np.pi / 2 * sample_range
+delta_phi_states_theta_pi_by_2 = [
+    {"theta": np.pi / 2, "delta_phi": delta_phi}
+    for delta_phi in delta_phi_range_theta_pi_by_2
+]
+delta_phi_states = delta_phi_states_theta_pi_by_4 + delta_phi_states_theta_pi_by_2
+
+states = theta_states + delta_phi_states
+
+states = [{
+    "name": f"theta={state['theta']:.2f}rad-delta_phi={state['delta_phi']:.2f}rad",
+    "alpha": np.cos(state["theta"] / 2),
+    "beta": np.exp(1j * (state["delta_phi"] + np.pi/2)) * np.sin(state["theta"] / 2)
+} for state in states] 
 
 
 # delete the waveplate angles files if they exist
@@ -41,7 +64,7 @@ def pre_compensate_state(psi: qt.Qobj, launcher_label):
     return compensation_matrix * psi
 
 # Set up the waveplates
-for launcher_label in ['B', 'A']:
+for launcher_label in [ 'B', 'A']:
     # Wait for user to block the other, non specified launcher
     print(f"BLOCK LAUNCHER ({'A' if launcher_label == 'B' else 'B'}) AND PRESS ENTER TO CONTINUE")
     input()

@@ -32,7 +32,7 @@ V = qt.basis(2, 1)  # |V>
 
 # File naming
 SAGNAC = "2"
-POWER = "100mW"
+POWER = "40mW"
 
 # Detector settings
 MEASUREMENT_TIME = 5  # seconds
